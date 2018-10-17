@@ -116,9 +116,18 @@ class PostSale(Resource):
 
 
 
+# fetch all product
+class GetSales(Resource):
+
+        def get(self):
+                
+            result = Sale.get_sales()
+            return {'message': 'products retrieved succesfully','status':'ok','sale':result}, 200
+
 
 # routes
 api.add_resource(PostProducts, '/api/v1/products')
 api.add_resource(GetProducts, '/api/v1/products')
 api.add_resource(EachProduct, '/api/v1/product/<int:product_id>')
 api.add_resource(PostSale, '/api/v1/sales')
+api.add_resource(GetSales, '/api/v1/sales')
