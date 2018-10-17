@@ -122,7 +122,7 @@ class GetSales(Resource):
         def get(self):
                 
             result = Sale.get_sales()
-            return {'message': 'products retrieved succesfully','status':'ok','sale':result}, 200
+            return {'message': 'sales retrieved succesfully','status':'ok','sale':result}, 200
 
 
 # routes
