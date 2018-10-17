@@ -1,7 +1,7 @@
 from flask_restful import Resource,reqparse,Api
 from flask import Flask,jsonify,request, make_response,Blueprint
 import re
-
+from application.v1.resources.models import Sale
 from application.v1.resources.models import Product
 
 
@@ -78,8 +78,47 @@ class EachProduct(Resource):
 
 
 
+# handles posting of a sale by store attendant
+
+class PostSale(Resource):
+
+        # validate sale input
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('description', required=True, help='Sale description  cannot be blank', type=str)
+        parser.add_argument('items', required=True, help=' items cannot be blank')
+
+
+        def post(self):
+
+            args =  PostSale.parser.parse_args()
+            description = args.get('description').strip()
+            items = args.get('items')
+            total = 400
+ 
+ # error response
+            if not description:
+                return make_response(jsonify({'message': 'Sale description  can not be empty'}),400)
+
+
+            try:
+
+                sale = Sale.create_sale(description,items,total)
+
+                return {
+                'message': 'Sale created successfully','sales': sale,'status':'ok'
+
+                 },201
+
+            except Exception as e:
+                print(e)
+                return {'message': 'Something went wrong'}, 500
+
+
+
 
 # routes
 api.add_resource(PostProducts, '/api/v1/products')
 api.add_resource(GetProducts, '/api/v1/products')
 api.add_resource(EachProduct, '/api/v1/product/<int:product_id>')
+api.add_resource(PostSale, '/api/v1/sales')

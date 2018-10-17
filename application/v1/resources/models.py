@@ -3,6 +3,7 @@ from flask import Flask,jsonify,request, make_response
 
 
 products = []
+cart = []
 
 
 class Product():
@@ -25,4 +26,14 @@ class Product():
             product_index= product_id - 1
 
             return products[product_index]
+
+
+class Sale():
+
+# create a sale record by store attendant
+        def create_sale(description,items,total):
+            id = len(cart) + 1
+            order = { 'id':id ,'description':description,'items':items,'total':total}
+            cart.append(order)
+            return cart
 
