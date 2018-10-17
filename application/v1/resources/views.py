@@ -64,10 +64,22 @@ class GetProducts(Resource):
             products = Product.get_products()
             
             return {'message': 'products retrieved succesfully','status':'ok','products': products}, 200
-            
+
+
+
+# fetch a specific product
+class EachProduct(Resource):
+
+        def get(self,product_id):
+
+            products = Product.get_each_product(product_id)
+
+            return {'message': 'product retrieved succesfully','status':'ok','products': products}, 200
+
 
 
 
 # routes
 api.add_resource(PostProducts, '/api/v1/products')
 api.add_resource(GetProducts, '/api/v1/products')
+api.add_resource(EachProduct, '/api/v1/product/<int:product_id>')

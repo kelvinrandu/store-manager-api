@@ -19,3 +19,10 @@ class Product():
 
             return products
 
+
+# fetch a single product 
+        def get_each_product(product_id):
+            product_index= product_id - 1
+
+            return products[product_index]
+
