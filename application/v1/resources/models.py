@@ -42,3 +42,11 @@ class Sale():
         def get_sales():
 
             return cart
+
+
+
+# fetch a single sale
+        def get_each_sale(sale_id):
+            sale_index = sale_id - 1
+            return cart[sale_index]
+
