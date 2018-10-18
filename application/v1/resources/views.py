@@ -99,7 +99,8 @@ class PostSale(Resource):
  # error response
             if not description:
                 return make_response(jsonify({'message': 'Sale description  can not be empty'}),400)
-
+            if not items:
+                return make_response(jsonify({'message': 'Sale items  can not be empty'}),400)
 
             try:
 

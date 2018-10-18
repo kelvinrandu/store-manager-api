@@ -9,6 +9,7 @@ cart = []
 class Product():
 
 # create a product by admin
+        @staticmethod
         def create_product(name,price,quantity):
             id = len(products) + 1
             new_product = { 'id':id ,'name':name,'price':price,'quantity':quantity}
@@ -16,12 +17,14 @@ class Product():
             return products
 
 # fetch all products by admin
+        @staticmethod
         def get_products():
 
             return products
 
 
 # fetch a single product 
+        @staticmethod
         def get_each_product(product_id):
             product_index= product_id - 1
 
@@ -31,6 +34,7 @@ class Product():
 class Sale():
 
 # create a sale record by store attendant
+        @staticmethod
         def create_sale(description,items,total):
             id = len(cart) + 1
             order = { 'id':id ,'description':description,'items':items,'total':total}
@@ -39,6 +43,7 @@ class Sale():
 
 
 # fetch all sales
+        @staticmethod
         def get_sales():
 
             return cart
@@ -46,6 +51,7 @@ class Sale():
 
 
 # fetch a single sale
+        @staticmethod
         def get_each_sale(sale_id):
             sale_index = sale_id - 1
             return cart[sale_index]
