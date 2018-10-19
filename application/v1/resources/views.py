@@ -13,8 +13,7 @@ store_manager = Blueprint('api',__name__)
 
 app = Flask(__name__)
 api = Api(store_manager)
-# app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
-# jwt = JWTManager(app)
+
 
 
 
@@ -77,8 +76,8 @@ class UserRegistration(Resource):
         try:
             result= User.create_user(username,email,password)
 
-            access_token = create_access_token(identity = data['username'])
-            refresh_token = create_refresh_token(identity = data['username'])
+            access_token = create_access_token(identity = username)
+            refresh_token = create_refresh_token(identity = username)
 
             return {
                 'message': 'User was created succesfully',
@@ -122,13 +121,16 @@ class UserLogin(Resource):
         if User.verify_hash(password,email) == True:
             access_token = create_access_token(identity = email)
             refresh_token = create_refresh_token(identity = email)
+
             return {
-                'message': 'Logged in succesfully',
-                'status':'ok',
+                'message': 'User was logged in succesfully',
+                'status': 'ok',
                 'access_token': access_token,
                 'refresh_token': refresh_token
+                }, 200
+            
 
-                },200
+               
         else:
             return {'message': 'Wrong credentials'},400
 

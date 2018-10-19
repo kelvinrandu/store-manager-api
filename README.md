@@ -15,6 +15,7 @@ The store attendants have the priviledge to do the following:
 
 ## LINK TO PIVOTAL TRACKER STORIES
 - https://www.pivotaltracker.com/n/projects/2202884
+
 ## RUNNING THE APPLICATION
 - clone [this](https://github.com/kelvinrandu/store-manager-api.git) repository
 - navigate to the project directory
@@ -33,6 +34,8 @@ The store attendants have the priviledge to do the following:
 
 | Methods        | Url          | Description |
 | ------------- |:-------------:| -----:|
+| POST   | http://127.0.0.1:5000/api/v1/login       |  login user      | 
+| POST   | http://127.0.0.1:5000/api/v1/register          |  register user         |
 | POST   | http://127.0.0.1:5000/api/v1/products        |  create product      | 
 | POST   | http://127.0.0.1:5000/api/v1/sales           |  create sale         | 
 | GET     | http://127.0.0.1:5000/api/v1/products       |  Fetch all product   |       
