@@ -13,3 +13,9 @@ class Product():
             new_product = { 'id':id ,'name':name,'price':price,'quantity':quantity}
             products.append(new_product)
             return products
+
+# fetch all products by admin
+        def get_products():
+
+            return products
+

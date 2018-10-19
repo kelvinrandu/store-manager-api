@@ -54,9 +54,20 @@ class PostProducts(Resource):
             except Exception as e:
                 print(e)
                 return {'message': 'Something went wrong'}, 500
+
+
+
+# fetch all product
+class GetProducts(Resource):
+
+        def get(self):
+            products = Product.get_products()
+            
+            return {'message': 'products retrieved succesfully','status':'ok','products': products}, 200
             
 
 
 
 # routes
 api.add_resource(PostProducts, '/api/v1/products')
+api.add_resource(GetProducts, '/api/v1/products')
