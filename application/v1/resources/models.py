@@ -37,3 +37,8 @@ class Sale():
             cart.append(order)
             return cart
 
+
+# fetch all sales
+        def get_sales():
+
+            return cart
