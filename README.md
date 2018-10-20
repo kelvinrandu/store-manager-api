@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/kelvinrandu/store-manager-api.svg?branch=develop)](https://travis-ci.org/kelvinrandu/store-manager-api)
+
 # store-manager-api
 A restful  flask app intended to communicate using api endpoints
 ## DESCRIPTION
