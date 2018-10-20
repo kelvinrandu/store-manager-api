@@ -16,6 +16,7 @@ Flask-API==1.0
 Flask-JWT-Extended==3.13.1
 Flask-RESTful==0.3.6
 funcsigs==1.0.2
+gunicorn==19.9.0
 idna==2.7
 ipaddress==1.0.22
 itsdangerous==0.24
