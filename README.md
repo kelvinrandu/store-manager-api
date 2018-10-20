@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/kelvinrandu/store-manager-api.svg?branch=develop)](https://travis-ci.org/kelvinrandu/store-manager-api)
 
+[![Coverage Status](https://coveralls.io/repos/github/kelvinrandu/store-manager-api/badge.svg?branch=develop)](https://coveralls.io/github/kelvinrandu/store-manager-api?branch=develop)
+
 # store-manager-api
 A restful  flask app intended to communicate using api endpoints
 ## DESCRIPTION
