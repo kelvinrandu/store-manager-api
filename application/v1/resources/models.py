@@ -7,15 +7,24 @@ from passlib.hash import pbkdf2_sha256 as sha256
 products = []
 cart = []
 users = [{
+    "id" : 1,
 	"username":"kelvin",
 	"email":"kelvin@gmail.com",
+	"password":"$pbkdf2-sha256$29000$tBZizDmHkLIWAsA4J4Rwrg$2K6y68IgBSKwnpAplRupNrKZJF9ZhV6w2Jj5eRRTqMw"
+    },
+    { 
+    "id" : 2,
+	"username":"kim",
+	"email":"kim@gmail.com",
 	"password":"$pbkdf2-sha256$29000$tBZizDmHkLIWAsA4J4Rwrg$2K6y68IgBSKwnpAplRupNrKZJF9ZhV6w2Jj5eRRTqMw"
     }]
 
 
 
 
+
 class User():
+ 
 
     @staticmethod
     def create_user(username,email,password):
@@ -25,51 +34,33 @@ class User():
         users.append(new_user)
         return users
 
-# find if email exists
+# # find if email exists
     @staticmethod
     def find_by_email(email):
-        for x in users :
-            listOfKeys = [key  for (key, value) in x.items() if value == email]
-            if listOfKeys:
-                return 1
+        return next((item for item in users if item["email"] == email), False)
 
-            return 0
 
-# find if username exists
+# # find if username exists
     @staticmethod
     def find_by_username(username):
-        for x in users :
-            listOfKeys = [key  for (key, value) in x.items() if value == username]
-            if listOfKeys:
-                return 1
-
-            return 0
-
-# find if username exists
-    @staticmethod
-    def get_user_hash(email):
-        for x in users :
-            listOfKeys = [key  for (key, value) in x.items() if value == email]
-            if listOfKeys:
-                result = filter(lambda person: person['email'] == email, users)
-                return result
+        return next((item for item in users if item["username"] == username), False)
 
 
-            return 0
 
-    # generate hash
+
+#     # generate hash
     @staticmethod
     def generate_hash(raw_password):
         return sha256.hash(raw_password)
 
-    # compare user password with hashed password 
+#     # compare user password with hashed password 
     @staticmethod
     def verify_hash(password,email):
-            for x in users :
-                listOfKeys = [key  for (key, value) in x.items() if value == email]
-                if listOfKeys:
-                    result = list(filter(lambda person: person['email'] == email, users))
-                    return sha256.verify(password,  result[0]['password'] )
+         user = next((item for item in users if item["email"] == email), False)
+         if user == False:
+             return False
+         return sha256.verify(password, user['password'] )
+        
 
 
 
