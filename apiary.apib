@@ -10,14 +10,17 @@ Store-manager is an api that helps store owners manage sales and product invento
 
 + Request (application/json)
 
-       [
+    + Body
+
+      
             {
                 "username": "testme",
                 "email": "test@gmail.com",
                 "password": "12345678"
 
             }
-        ]
+
+
 + Response 201 (application/json)
 
         [
@@ -34,13 +37,15 @@ Store-manager is an api that helps store owners manage sales and product invento
 ### Login a user [POST]
 + Request (application/json)
 
-       [
+    + Body
+
+      
             {
                 "email": "test@gmail.com",
                 "password": "12345678"
 
             }
-        ]
+ 
 + Response 200 (application/json)
 
         [
@@ -60,9 +65,7 @@ A logged in user can fetch all available products.
 + Request (application/json)
 
    + Headers
-        {
-        
-        }
+             Authorization: Bearer access_token
 
 + Response 200 (application/json)
 
@@ -81,19 +84,17 @@ object containing product details including product name,quantity and price.
 
 + Request (application/json)
 
-   + Headers
-        {
-            
-        }
-        
-        [
+    + Headers
+
+            Authorization: Bearer access_token
+
+    + Body
+
             {
                 "name": "monalisa painting",
                 "price": 3000000000
                 "quantity": 1
-
             }
-        ]
 
 + Response 201 (application/json)
 
@@ -111,9 +112,8 @@ A logged in user can fetch a single product using this action.
 + Request (application/json)
 
    + Headers
-        {
+            Authorization: Bearer access_token
             
-        }
 + Response 200 (application/json)
 
         [
@@ -131,9 +131,8 @@ An admin  can fetch all  sales using this action.
 + Request (application/json)
 
    + Headers
-        {
+            Authorization: Bearer access_token
             
-        }
 + Response 200 (application/json)
 
         [
@@ -150,20 +149,18 @@ A store attendant can create a new sale using this action. It takes a JSON objec
 .
 
 + Request (application/json)
-   + Headers
-        {
-            
-        }
-        
-        [
+    + Headers
+
+            Authorization: Bearer access_token
+
+    + Body
+
             {
                 "description": "painting gallore",
                 "items": {"id":1,"name":"monalisa","price":3000000,"quantity":1}
-    
 
             }
-        ]
-
+  
 + Response 201 (application/json)
 
         [
@@ -181,9 +178,8 @@ An admin can fetch a specific sale using this action.
 + Request (application/json)
 
    + Headers
-        {
+            Authorization: Bearer access_token
             
-        }
 + Response 200 (application/json)
 
         [
