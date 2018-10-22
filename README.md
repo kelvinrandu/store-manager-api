@@ -46,14 +46,14 @@ https://mystore-manager-api.herokuapp.com/
 
 | Methods        | Url          | Description |
 | ------------- |:-------------:| -----:|
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/login       |  login user      | 
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/register          |  register user         |
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/products        |  create product      | 
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/sales           |  create sale         | 
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/products       |  Fetch all product   |       
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sales          |  Fetch all sales     |      
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/product/<int: product_id>  |  Fetches a single product   |
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sale/<int: sale_id>  |  Fetches a single sale   |
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/login/      |  login user      | 
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/register/          |  register user         |
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/products/        |  create product      | 
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/sales/           |  create sale         | 
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/products/       |  Fetch all product   |       
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sales/          |  Fetch all sales     |      
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/product/<int: product_id>/ |  Fetches a single product   |
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sale/<int: sale_id>/  |  Fetches a single sale   |
 
 
 ## TESTING THE APP
