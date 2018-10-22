@@ -32,7 +32,7 @@ class User():
         id = len(users) + 1
         new_user = { 'id':id ,'username':username,'email':email,'password':password,'role':role}
         users.append(new_user)
-        return users
+        return new_user
 
 # # find if email exists
     @staticmethod
