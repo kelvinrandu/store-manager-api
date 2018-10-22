@@ -31,25 +31,9 @@ class ProductTestCase(unittest.TestCase):
                                        content_type='application/json')
         return json.loads(res_login.data.decode())["access_token"]
 
-    # def test_get_products(self):
-    #     '''Test Get all products'''
-    #     self.client.post('api/v1/register', data=json.dumps(
-    #         dict(email='test@gmail.com', username='test', password='password')),
-    #                        content_type='application/json')
-
-    #     res_login = self.client.post('api/v1/login', data=json.dumps(
-    #         dict(email='kelvin@gmail.com', password='12345678')),
-    #                                    content_type='application/json')
-    #     resp_data = json.loads(res_login.data.decode())
-    #     self.assertTrue(resp_data['access_token'])
-
-    #     self.assertEqual(res_login.status_code, 200)
-  
 
 
-
-
-    def test_create_product(self):
+    def test_get_products(self):
         '''Test for  creating a product '''
 
         response = self.client.post(CREATE_PRODUCT_URL,
