@@ -7,8 +7,8 @@ from application.app import create_app
 
 
 
-REGISTER_URL = '/api/v1/register'
-LOGIN_URL = '/api/v1/login'
+REGISTER_URL = '/api/v1/register/'
+LOGIN_URL = '/api/v1/login/'
 
 
 

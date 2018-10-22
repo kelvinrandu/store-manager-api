@@ -7,9 +7,9 @@ from application.app import create_app
 
 
 
-CREATE_SALE_URL = '/api/v1/sales'
-GET_SINGLE_SALE = '/api/v1/sale/1'
-GET_ALL_SALE = '/api/v1/sales'
+CREATE_SALE_URL = '/api/v1/sales/'
+GET_SINGLE_SALE = '/api/v1/sale/1/'
+GET_ALL_SALE = '/api/v1/sales/'
 
 
 class SaleTestCase(unittest.TestCase):
@@ -23,7 +23,7 @@ class SaleTestCase(unittest.TestCase):
         self.empty_sale_items = { "description": "gjjgjg", "items":"" }
 
     def login(self):
-        res_login = self.client.post('api/v1/login', data=json.dumps(
+        res_login = self.client.post('api/v1/login/', data=json.dumps(
             dict(email='kelvin@gmail.com', password='12345678')),
                                        content_type='application/json')
         return json.loads(res_login.data.decode())["access_token"]

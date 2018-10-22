@@ -7,9 +7,9 @@ from application.app import create_app
 
 
 
-CREATE_PRODUCT_URL = '/api/v1/products'
-GET_SINGLE_PRODUCT = '/api/v1/product/1'
-GET_ALL_PRODUCTS = '/api/v1/products'
+CREATE_PRODUCT_URL = '/api/v1/products/'
+GET_SINGLE_PRODUCT = '/api/v1/product/1/'
+GET_ALL_PRODUCTS = '/api/v1/products/'
 
 
 class ProductTestCase(unittest.TestCase):
@@ -26,7 +26,7 @@ class ProductTestCase(unittest.TestCase):
  
 
     def login(self):
-        res_login = self.client.post('api/v1/login', data=json.dumps(
+        res_login = self.client.post('api/v1/login/', data=json.dumps(
             dict(email='kelvin@gmail.com', password='12345678')),
                                        content_type='application/json')
         return json.loads(res_login.data.decode())["access_token"]
