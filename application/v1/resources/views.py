@@ -213,7 +213,15 @@ class EachProduct(Resource):
 
             return {'message': 'product retrieved succesfully','status':'ok','products': products}, 200
 
+# delete  specific product
+class DeleteProduct(Resource):
+        @jwt_required
+        def delete(self,product_id):
 
+# modify specific product
+class ModifiProduct(Resource):
+        @jwt_required
+        def put(self,product_id):
 
 # handles posting of a sale by store attendant
 
@@ -292,8 +300,8 @@ class SecretResource(Resource):
         }
 
 # routes
-api.add_resource(UserRegistration, '/api/v1/register/')
-api.add_resource(UserLogin, '/api/v1/login/')
+api.add_resource(UserRegistration, '/api/v1/auth/signup/')
+api.add_resource(UserLogin, '/api/v1/auth/login/')
 # api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
 # api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh/')
 # api.add_resource(TokenRefresh, '/api/v1/token/refresh/')
@@ -301,6 +309,8 @@ api.add_resource(SecretResource, '/api/v1/secret/')
 api.add_resource(PostProducts, '/api/v1/products/')
 api.add_resource(GetProducts, '/api/v1/products/')
 api.add_resource(EachProduct, '/api/v1/product/<int:product_id>/')
+api.add_resource(DeleteProduct, '/api/v1/product/<int:product_id>/')
+api.add_resource(ModifyProduct, '/api/v1/product/<int:product_id>/')
 api.add_resource(PostSale, '/api/v1/sales/')
 api.add_resource(GetSales, '/api/v1/sales/')
 api.add_resource(EachSale, '/api/v1/sale/<int:sale_id>/')
