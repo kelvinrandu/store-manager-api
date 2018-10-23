@@ -1,6 +1,8 @@
 from flask_restful import Resource,reqparse
 from flask import Flask,jsonify,request, make_response
 from passlib.hash import pbkdf2_sha256 as sha256
+from psycopg2 import sql
+from psycopg2 import connect
 
 
 
