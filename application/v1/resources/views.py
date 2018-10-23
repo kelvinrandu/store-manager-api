@@ -75,29 +75,50 @@ class UserRegistration(Resource):
             return {'message': 'email already exist'},400 
   
 
-        # #generate hash for user password
-        password = User.generate_hash(raw_password)
- 
+        # send validated user input to user model
+        new_user = User(
+            username=username ,
+            email=email,
+            password = User.generate_hash(password)
+     
+        )
 
- 
-        # # attempt sending user to user model
+        # attempt creating a new user in user model
         try:
-            result= User.create_user(username,email,password)
-
+            result = new_user.create_store_attendant()
             access_token = create_access_token(identity = username)
             refresh_token = create_refresh_token(identity = username)
-
             return {
                 'message': 'User was created succesfully',
                 'status': 'ok',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
                 'user': result
-                }, 201
+                },201
 
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
+
+ 
+        # # # attempt sending user to user model
+        # try:
+        #     result= User.create_user(username,email,password)
+
+        #     access_token = create_access_token(identity = username)
+        #     refresh_token = create_refresh_token(identity = username)
+
+        #     return {
+        #         'message': 'User was created succesfully',
+        #         'status': 'ok',
+        #         'access_token': access_token,
+        #         'refresh_token': refresh_token,
+        #         'user': result
+        #         }, 201
+
+        # except Exception as e:
+        #     print(e)
+        #     return {'message': 'Something went wrong'}, 500
  
 
 
@@ -123,25 +144,23 @@ class UserLogin(Resource):
 
   # upon successful validation check if user by the email exists 
         current_user = User.find_by_email(email)
-        if current_user == False:
-            return {'message': 'email does not  exist'},400
+        if current_user is None:
+            return {'message': 'email {} doesn\'t exist'.format(email)},400
 
 
         
-        # # compare user's password and the hashed password in database
-        if User.verify_hash(password,email) == True:
-            access_token = create_access_token(identity = email)
-            refresh_token = create_refresh_token(identity = email)
-
+        # compare user's password and the hashed password in database
+        if User.verify_hash(password, current_user['password']):
+            access_token = create_access_token(identity =  current_user['name'])
+            refresh_token = create_refresh_token(identity = current_user['name'])
             return {
-                'message': 'User was logged in succesfully',
+                'message': 'User was created succesfully',
                 'status': 'ok',
                 'access_token': access_token,
-                'refresh_token': refresh_token
-                }, 200
-            
+                'refresh_token': refresh_token,
+                'user': current_user
 
-               
+                },200
         else:
             return {'message': 'Wrong credentials'},400
 
@@ -299,11 +318,34 @@ class SecretResource(Resource):
             'answer': 42
         }
 
+class UserLogoutAccess(Resource):
+    @jwt_required
+    def post(self):
+        jti = get_raw_jwt()['jti']
+        try:
+            revoked_token = RevokedTokenModel(jti = jti)
+            revoked_token.add()
+            return {'message': 'Access token has been revoked'}
+        except:
+            return {'message': 'Something went wrong'}, 500
+
+
+class UserLogoutRefresh(Resource):
+    @jwt_refresh_token_required
+    def post(self):
+        jti = get_raw_jwt()['jti']
+        try:
+            revoked_token = RevokedTokenModel(jti = jti)
+            revoked_token.add()
+            return {'message': 'Refresh token has been revoked'}
+        except:
+            return {'message': 'Something went wrong'}, 500
+
 # routes
 api.add_resource(UserRegistration, '/api/v1/auth/signup/')
 api.add_resource(UserLogin, '/api/v1/auth/login/')
-# api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
-# api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh/')
+api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
+api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh/')
 # api.add_resource(TokenRefresh, '/api/v1/token/refresh/')
 api.add_resource(SecretResource, '/api/v1/secret/')
 api.add_resource(PostProducts, '/api/v1/products/')

@@ -3,50 +3,59 @@ from flask import Flask,jsonify,request, make_response
 from passlib.hash import pbkdf2_sha256 as sha256
 from psycopg2 import sql
 from psycopg2 import connect
+from application.database import DatabaseConnect
 
-
-
+users= []
 products = []
-cart = []
-users = [{
-    "id" : 1,
-	"username":"kelvin",
-	"email":"kelvin@gmail.com",
-	"password":"$pbkdf2-sha256$29000$tBZizDmHkLIWAsA4J4Rwrg$2K6y68IgBSKwnpAplRupNrKZJF9ZhV6w2Jj5eRRTqMw"
-    },
-    { 
-    "id" : 2,
-	"username":"kim",
-	"email":"kim@gmail.com",
-	"password":"$pbkdf2-sha256$29000$tBZizDmHkLIWAsA4J4Rwrg$2K6y68IgBSKwnpAplRupNrKZJF9ZhV6w2Jj5eRRTqMw"
-    }]
-
-
+sales = []
 
 
 
 class User():
- 
 
-    @staticmethod
-    def create_user(username,email,password):
-        role = 'user'
-        id = len(users) + 1
-        new_user = { 'id':id ,'username':username,'email':email,'password':password,'role':role}
-        users.append(new_user)
-        return new_user
+    def __init__(self,username,email,password):
+        self.username = username
+        self.email = email
+        self.password = password 
+        self.role = 0
 
-# # find if email exists
+
+    @classmethod
+    def create_store_attendant(self):
+        try:
+            db.cursor.execute(
+                """
+                INSERT INTO users(name, email, password,role)
+                VALUES(%s,%s,%s,%s)""",
+                (self.username, self.email,self.password,self.role))
+
+            
+                       
+            return 'attendant registered succesful'
+        
+
+        except Exception as e:
+            print(e)
+            return ("ran into trouble registering you")
+
+
+# checks if email exists
     @staticmethod
     def find_by_email(email):
-        return next((item for item in users if item["email"] == email), False)
 
+        db.cursor.execute("""SELECT * FROM users WHERE email='{}' """.format(email))
+        rows = db.cursor.fetchone()
+               
+        return rows
 
-# # find if username exists
+# checks if username exists
     @staticmethod
     def find_by_username(username):
-        return next((item for item in users if item["username"] == username), False)
 
+        db.cursor.execute("""SELECT * FROM users WHERE username='{}' """.format(username))
+        rows = db.cursor.fetchone()
+               
+        return rows
 
 
 
@@ -55,13 +64,11 @@ class User():
     def generate_hash(raw_password):
         return sha256.hash(raw_password)
 
-#     # compare user password with hashed password 
+    # compare user password with hashed password 
     @staticmethod
-    def verify_hash(password,email):
-         user = next((item for item in users if item["email"] == email), False)
-         if user == False:
-             return False
-         return sha256.verify(password, user['password'] )
+    def verify_hash(password, hash):
+        return sha256.verify(password, hash)
+
         
 
 
@@ -70,51 +77,140 @@ class User():
 
 class Product():
 
+    # product class constructor
+    def __init__(self,name,price,quantity):
+        self.name = name
+        self.price = price
+        self.quantity = quantity
+
 # create a product by admin
         @staticmethod
-        def create_product(name,price,quantity):
-            id = len(products) + 1
-            new_product = { 'id':id ,'name':name,'price':price,'quantity':quantity}
-            products.append(new_product)
-            return products
+        def create_product(self):
+
+        try:
+            db.cursor.execute(
+                """
+                INSERT INTO products(name, price, quantity)
+                VALUES(%s,%s,%s)""",
+                (self.name, self.price,self.quantity))
+
+            
+                       
+            return 'product created succesfully'
+        
+
+        except Exception as e:
+            print(e)
+            return ("ran into trouble creating your product ")
 
 # fetch all products by admin
         @staticmethod
         def get_products():
+            try:
+      
+                db.cursor.execute("""SELECT * FROM products  """)
+                # db.cursor.commit()
+                rows = db.cursor.fetchall()
 
-            return products
+                return rows
+        
+            except Exception as e:
+                print(e)
+                return {'message': 'Something went wrong'}, 500
 
 
 # fetch a single product 
         @staticmethod
         def get_each_product(product_id):
-            product_index= product_id - 1
+            try:
+      
+                db.cursor.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
+                # db.cursor.commit()
+                rows = db.cursor.fetchall()
+        
+                return rows
 
-            return products[product_index]
+        
+            except Exception as e:
+                print(e)
+                return {'message': 'Something went wrong'}, 500
 
 
 class Sale():
 
+# product class constructor
+    def __init__(self,description,items,total):
+        self.description = description
+        self.items = items
+        self.total = total
+
 # create a sale record by store attendant
-        @staticmethod
-        def create_sale(description,items,total):
-            id = len(cart) + 1
-            order = { 'id':id ,'description':description,'items':items,'total':total}
-            cart.append(order)
-            return cart
+        @classmethod
+        def create_sale(self):
+            try:
+                db.cursor.execute(
+                    """
+                    INSERT INTO sales(description, items, total)
+                    VALUES(%s,%s,%s)""",
+                (self.description, self.items,self.total))
+
+            
+                       
+                return 'sale created succesfully'
+        
+
+            except Exception as e:
+                print(e)
+                return ("ran into trouble creating your sale ")
 
 
 # fetch all sales
         @staticmethod
         def get_sales():
+            try:
+      
+                db.cursor.execute("""SELECT * FROM sales  """)
+                # db.cursor.commit()
+                rows = db.cursor.fetchall()
 
-            return cart
-
+                return rows
+        
+            except Exception as e:
+                print(e)
+                return {'message': 'Something went wrong'}, 500
 
 
 # fetch a single sale
         @staticmethod
         def get_each_sale(sale_id):
-            sale_index = sale_id - 1
-            return cart[sale_index]
+            try:
+      
+                db.cursor.execute("""SELECT * FROM sales WHERE id='{}' """.format(sales_id))
+                # db.cursor.commit()
+                rows = db.cursor.fetchall()
+        
+                return rows
 
+        
+            except Exception as e:
+                print(e)
+                return {'message': 'Something went wrong'}, 500
+
+
+
+
+class RevokedTokenModel():
+    # __tablename__ = 'revoked_tokens'
+    # id = db.Column(db.Integer, primary_key = True)
+    # jti = db.Column(db.String(120))
+    
+    def add(self):
+        # db.session.add(self)
+        # db.session.commit()
+        pass
+    
+    @classmethod
+    def is_jti_blacklisted(cls, jti):
+        # query = cls.query.filter_by(jti = jti).first()
+        # return bool(query)
+        pass
