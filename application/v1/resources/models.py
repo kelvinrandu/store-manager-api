@@ -172,6 +172,21 @@ class Product():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
+  #  delete a product
+    @staticmethod
+    def delete_product(product_id,user_id):
+  
+        try:
+      
+            db.cursor.execute("""DELETE FROM products WHERE id='{}' """.format(product_id))
+            # db.cursor.commit()
+        
+            return 'product deleted succesfully'
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 class Sale():
 
