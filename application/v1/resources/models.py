@@ -200,6 +200,22 @@ class Product():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
+#  add category to product
+    @staticmethod
+    def add_category_to_product(product_id,category_id,admin_id):
+  
+        try:
+      
+            db.cursor.execute("""UPDATE products  SET category='{}'  WHERE id='{}' """.format(category_id,product_id))
+            # db.cursor.commit()
+        
+            return 'category added to product'
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
 class Sale():
 
 # product class constructor

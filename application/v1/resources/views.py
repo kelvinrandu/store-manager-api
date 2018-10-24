@@ -524,6 +524,39 @@ class MakeAdmin(Resource):
             print(e)
             return {'message': 'Something went wrong'}, 500
 
+# add category to product
+class AddCategory(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('admin_id', required=True, help='admin id cannot be blank', type=int)
+    parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
+
+    @jwt_required
+    def post(self,product_id):
+        args =  AddCategory.parser.parse_args()
+        admin_id = args.get('admin_id')
+        category_id = args.get('category_id')
+
+        if not admin_id:
+            return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)   
+        if not category_id:
+            return make_response(jsonify({'message': 'category id  cannot be empty'}),400) 
+
+        
+
+#  attempt to add category to product
+        try:
+            Product.add_category_to_product(product_id,category_id,admin_id)
+
+            return {
+                'message': 'category added succesfully',
+                'status':'ok'
+
+                },200
+
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
 
 
 
@@ -585,3 +618,4 @@ api.add_resource(GetCategory, '/api/v1/categories/')
 api.add_resource(ModifyCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(DeleteCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(MakeAdmin, '/api/v1/make/admin/<int:user_id>/')
+api.add_resource(AddCategory, '/api/v1/products/add/category/<int:product_id>/')
