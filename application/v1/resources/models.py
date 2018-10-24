@@ -146,14 +146,31 @@ class Product():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-# checks if product name exists
-        @staticmethod
-        def find_product_by_name(name):
 
-            db.cursor.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
-            rows = db.cursor.fetchone()
+# checks if product name exists
+    @staticmethod
+    def find_product_by_name(name):
+
+        db.cursor.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
+        rows = db.cursor.fetchone()
                
-            return rows
+        return rows
+
+  #  modify an entry
+    @staticmethod
+    def edit_product(product_id,name,user_id):
+  
+        try:
+      
+            db.cursor.execute("""UPDATE products  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,product_id))
+            # db.cursor.commit()
+        
+            return 'product edited'
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 
 class Sale():

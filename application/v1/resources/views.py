@@ -308,6 +308,36 @@ class GetSales(Resource):
             return jsonify({'message':'no sales yet'})
                 
 
+# modify an  entry
+class ModifyProduct(Resource):
+
+    parser = reqparse.RequestParser()
+    parser.add_argument('user_id', required=True, help='title cannot be blank', type=int)
+    parser.add_argument('name', required=True, help='body cannot be blank', type=str)
+
+
+    @jwt_required
+    def put(self,product_id):
+
+        args =  ModifyProduct.parser.parse_args()
+        user_id = args.get('user_id')
+        name = args.get('name').strip()
+
+   
+        
+
+        # attempt modify product
+        try:
+            Product.edit_product(product_id,name,user_id)
+
+            return {
+                'message': 'Product  was successfuly edited'
+
+                }
+
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 
 
@@ -374,7 +404,7 @@ api.add_resource(PostProducts, '/api/v1/products/')
 api.add_resource(GetProducts, '/api/v1/products/')
 api.add_resource(EachProduct, '/api/v1/product/<int:product_id>/')
 api.add_resource(DeleteProduct, '/api/v1/product/<int:product_id>/')
-api.add_resource(ModifyProduct, '/api/v1/product/<int:product_id>/')
+api.add_resource(ModifyProduct, '/api/v1/products/<int:product_id>/')
 api.add_resource(PostSale, '/api/v1/sales/')
 api.add_resource(GetSales, '/api/v1/sales/')
 api.add_resource(EachSale, '/api/v1/sale/<int:sale_id>/')
