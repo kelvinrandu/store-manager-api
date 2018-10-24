@@ -22,12 +22,15 @@ class ProductTestCase(unittest.TestCase):
         self.empty_products = { "name": "", "quantity":12,"price":2000 }
         self.empty_price = { "name": "jfjfj","quantity":12,"price":"" }
         self.empty_quantity = { "name": "jfjfj","quantity":"","price":3556 }
-
+        self.login_user = { "email": "testproduct@gmail.com", "password":"12345678" }
+        self.client.post('api/v1/auth/signup', data=json.dumps(
+            dict(email='testproduct@gmail.com', username='testproduct', password='12345678')),
+                           content_type='application/json')
  
 
     def login(self):
-        res_login = self.client.post('api/v1/login/', data=json.dumps(
-            dict(email='kelvin@gmail.com', password='12345678')),
+        res_login = self.client.post('/api/v1/auth/login/', data=json.dumps(
+            dict(email='testproduct@gmail.com', password='12345678')),
                                        content_type='application/json')
         return json.loads(res_login.data.decode())["access_token"]
 
