@@ -249,6 +249,86 @@ class Sale():
             return {'message': 'Something went wrong'}, 500
 
 
+class Category():
+
+# product class constructor
+    def __init__(self,name,user_id):
+        self.name = name
+        self.user_id = user_id
+
+# create a sale record by store attendant
+    def create_new_category(self):
+        try:
+            db.cursor.execute(
+                """
+                INSERT INTO categories( name,created_by)
+                VALUES(%s,%s)""",
+            ( self.name,self.user_id))
+
+            
+                       
+            return 'category created succesfully'
+        
+
+        except Exception as e:
+            print(e)
+            return ("ran into trouble creating category ")
+
+# checks if category name exists
+    @staticmethod
+    def find_category_by_name(name):
+
+        db.cursor.execute("""SELECT * FROM categories WHERE name='{}' """.format(name))
+        rows = db.cursor.fetchone()
+               
+        return rows
+
+# fetch all categoies by admin
+    @staticmethod  
+    def get_categories():
+        try:
+      
+            db.cursor.execute("""SELECT * FROM categories  """)
+            # db.cursor.commit()
+            rows = db.cursor.fetchall()
+
+            return rows
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
+  #  modify an entry
+    @staticmethod
+    def edit_category(category_id,name,user_id):
+  
+        try:
+      
+            db.cursor.execute("""UPDATE categories  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,category_id))
+            # db.cursor.commit()
+        
+            return 'product edited'
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
+  #  delete a category
+    @staticmethod
+    def delete_category(category_id,user_id):
+  
+        try:
+      
+            db.cursor.execute("""DELETE FROM categories WHERE id='{}' """.format(category_id))
+            # db.cursor.commit()
+        
+            return 'product deleted succesfully'
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 
 class RevokedTokenModel():

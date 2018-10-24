@@ -4,6 +4,7 @@ import re
 from application.v1.resources.models import User
 from application.v1.resources.models import Sale
 from application.v1.resources.models import Product
+from application.v1.resources.models import Category
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 
 
@@ -371,6 +372,129 @@ class EachSale(Resource):
                 return jsonify({'message':'not found' }),404
 
 
+#  admin create  category
+class PostCategory(Resource):
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
+        parser.add_argument('user_id', required=True, help='User_id quantity cannot be blank', type=int)
+
+        @jwt_required
+        def post(self):
+
+ # validate input
+
+            args =  PostCategory.parser.parse_args()
+            name = args.get('name').strip()
+            user_id = args.get('user_id')
+
+
+
+# error response
+            if not name:
+                return make_response(jsonify({'message': 'category name can not be empty'}),400)
+
+            if not user_id:
+                return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
+
+            this_category = Category.find_category_by_name(name)
+            if this_category:
+                return {'message': 'product already exist'},400 
+
+            new_category = Category(
+                name=name ,
+                user_id = user_id
+     
+            )
+
+
+            try:
+
+                category = new_category.create_new_category()
+
+                return {
+                'message': 'category created successfully','status':'ok'
+
+                 },201
+
+            except Exception as e:
+                print(e)
+                return {'message': 'Something went wrong'}, 500
+
+
+#  adminpost category
+class GetCategory(Resource):
+    @jwt_required
+    def get(self):
+ 
+        if Category.get_categories() :
+            rows=  Category.get_categories()
+            return jsonify({'message': 'categories retrieved succesfully','status':'ok','sale':rows})
+        return jsonify({'message':'no categories added yet'})
+
+
+#  admin modify category
+class ModifyCategory(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('user_id', required=True, help='title cannot be blank', type=int)
+    parser.add_argument('name', required=True, help='body cannot be blank', type=str)
+
+
+    @jwt_required
+    def put(self,category_id):
+
+        args =  ModifyCategory.parser.parse_args()
+        user_id = args.get('user_id')
+        name = args.get('name').strip()
+
+# error response
+        if not name:
+            return make_response(jsonify({'message': 'category name can not be empty'}),400)
+
+        if not user_id:
+            return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
+
+        # attempt modify category
+        try:
+            Category.edit_category(category_id,name,user_id)
+
+            return {
+                'message': 'Category  was successfuly edited'
+
+                }
+
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
+#  admin delete category
+class DeleteCategory(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('user_id', required=True, help='title cannot be blank', type=int)
+ 
+
+    @jwt_required
+    def delete(self,category_id):
+
+        args =  DeleteProduct.parser.parse_args()
+        user_id = args.get('user_id')
+
+        if not user_id:
+            return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
+
+        # attempt delete category
+        try:
+            Category.delete_category(category_id,user_id)
+
+            return {
+                'message': 'category  was successfuly deleted'
+
+                },200
+
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
 
 class TokenRefresh(Resource):
     @jwt_refresh_token_required
@@ -425,3 +549,7 @@ api.add_resource(ModifyProduct, '/api/v1/products/<int:product_id>/')
 api.add_resource(PostSale, '/api/v1/sales/')
 api.add_resource(GetSales, '/api/v1/sales/')
 api.add_resource(EachSale, '/api/v1/sale/<int:sale_id>/')
+api.add_resource(PostCategory, '/api/v1/categories/')
+api.add_resource(GetCategory, '/api/v1/categories/')
+api.add_resource(ModifyCategory, '/api/v1/categories/<int:category_id>/')
+api.add_resource(DeleteCategory, '/api/v1/categories/<int:category_id>/')
