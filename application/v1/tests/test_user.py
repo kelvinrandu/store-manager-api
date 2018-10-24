@@ -34,7 +34,7 @@ class UserTestCase(unittest.TestCase):
                                             content_type = 'application/json')
         resp_data = json.loads(res.data.decode())
         self.assertEqual(res.status_code, 201)
-        self.assertEqual(resp_data['message'], 'User was created succesfully')
+        self.assertEqual(resp_data['message'], 'Store attendant was created succesfully')
 
 
     def test_sign_up_empty_email(self):

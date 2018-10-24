@@ -1,7 +1,6 @@
 from flask_restful import Resource,reqparse,Api
 from flask import Flask,jsonify,request, make_response,Blueprint
 import re
-from application.v1.resources.models import users
 from application.v1.resources.models import User
 from application.v1.resources.models import Sale
 from application.v1.resources.models import Product
@@ -35,7 +34,7 @@ class UserRegistration(Resource):
         # remove all whitespaces from input
         args =  UserRegistration.parser.parse_args()
         raw_password = args.get('password')
-        confirm_password = args.get('confirm_password')
+        # confirm_password = args.get('confirm_password')
         username = args.get('username').strip()
         email = args.get('email')
 
@@ -63,15 +62,15 @@ class UserRegistration(Resource):
 
 
      
-
-        # # # upon successful validation check if user by the username exists 
+        
+        # # # # upon successful validation check if user by the username exists 
         this_user = User.find_by_username(username)
-        if this_user != False:
+        if this_user:
             return {'message': 'username already exist'},400
 
          # # # upon successful validation check if user by the email exists 
         this_user = User.find_by_email(email)
-        if this_user != False:
+        if this_user:
             return {'message': 'email already exist'},400 
   
 
@@ -79,9 +78,10 @@ class UserRegistration(Resource):
         new_user = User(
             username=username ,
             email=email,
-            password = User.generate_hash(password)
+            password = User.generate_hash(raw_password)
      
         )
+
 
         # attempt creating a new user in user model
         try:
@@ -89,7 +89,7 @@ class UserRegistration(Resource):
             access_token = create_access_token(identity = username)
             refresh_token = create_refresh_token(identity = username)
             return {
-                'message': 'User was created succesfully',
+                'message': 'Store attendant was created succesfully',
                 'status': 'ok',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
@@ -101,24 +101,7 @@ class UserRegistration(Resource):
             return {'message': 'Something went wrong'}, 500
 
  
-        # # # attempt sending user to user model
-        # try:
-        #     result= User.create_user(username,email,password)
 
-        #     access_token = create_access_token(identity = username)
-        #     refresh_token = create_refresh_token(identity = username)
-
-        #     return {
-        #         'message': 'User was created succesfully',
-        #         'status': 'ok',
-        #         'access_token': access_token,
-        #         'refresh_token': refresh_token,
-        #         'user': result
-        #         }, 201
-
-        # except Exception as e:
-        #     print(e)
-        #     return {'message': 'Something went wrong'}, 500
  
 
 
@@ -142,23 +125,21 @@ class UserLogin(Resource):
         if not password:
             return {'message': 'password cannot be empty'},400
 
-  # upon successful validation check if user by the email exists 
+        # upon successful validation check if user by the email exists in database and return response if not
         current_user = User.find_by_email(email)
         if current_user is None:
             return {'message': 'email {} doesn\'t exist'.format(email)},400
 
-
         
         # compare user's password and the hashed password in database
         if User.verify_hash(password, current_user['password']):
-            access_token = create_access_token(identity =  current_user['name'])
-            refresh_token = create_refresh_token(identity = current_user['name'])
+            access_token = create_access_token(identity =  current_user['username'])
+            refresh_token = create_refresh_token(identity = current_user['username'])
             return {
-                'message': 'User was created succesfully',
-                'status': 'ok',
+                'message': 'User was logged in succesfully',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
-                'user': current_user
+                'username': current_user['username']
 
                 },200
         else:
@@ -176,6 +157,7 @@ class PostProducts(Resource):
         parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
         parser.add_argument('price', required=True, help=' Product price cannot be blank',type=int)
         parser.add_argument('quantity', required=True, help='Product quantity cannot be blank', type=int)
+        parser.add_argument('user_id', required=True, help='User_id quantity cannot be blank', type=int)
 
         @jwt_required
         def post(self):
@@ -185,6 +167,7 @@ class PostProducts(Resource):
             args =  PostProducts.parser.parse_args()
             name = args.get('name').strip()
             price = args.get('price')
+            user_id = args.get('user_id')
             quantity = args.get('quantity')
 
 
@@ -195,15 +178,28 @@ class PostProducts(Resource):
                 return make_response(jsonify({'message': 'price of product cannot be empty'}),400)
             if not quantity:
                 return make_response(jsonify({'message': 'quantity of product cannot be empty'}),400)
+            if not user_id:
+                return make_response(jsonify({'message': 'quantity of product cannot be empty'}),400)
 
+            this_product = Product.find_product_by_name(name)
+            if this_product:
+                return {'message': 'product already exist'},400 
+
+            new_product = Product(
+                name=name ,
+                price=price,
+                quantity = quantity,
+                user_id = user_id
+     
+            )
 
 
             try:
 
-                products = Product.create_product(name,price,quantity)
+                products = new_product.create_new_product()
 
                 return {
-                'message': 'product created successfully','product': products,'status':'ok'
+                'message': 'product created successfully','status':'ok'
 
                  },201
 
@@ -217,9 +213,10 @@ class PostProducts(Resource):
 class GetProducts(Resource):
         @jwt_required
         def get(self):
-            products = Product.get_products()
-            
-            return {'message': 'products retrieved succesfully','status':'ok','products': products}, 200
+            if Product.get_products() :
+                rows=  Product.get_products()
+                return jsonify({'message': 'product retrieved succesfully','status':'ok','products': rows})
+            return jsonify({'message':'no products yet'})
 
 
 
@@ -227,20 +224,24 @@ class GetProducts(Resource):
 class EachProduct(Resource):
         @jwt_required
         def get(self,product_id):
-
-            products = Product.get_each_product(product_id)
-
-            return {'message': 'product retrieved succesfully','status':'ok','products': products}, 200
+            rows=  Product.get_each_product(product_id)
+            if rows:
+   
+                return jsonify({'message': 'product retrieved succesfully','status':'ok','products': rows},200)
+            else:
+                return jsonify({'message':'not found' }),404
 
 # delete  specific product
 class DeleteProduct(Resource):
         @jwt_required
         def delete(self,product_id):
+            pass
 
 # modify specific product
-class ModifiProduct(Resource):
+class ModifyProduct(Resource):
         @jwt_required
         def put(self,product_id):
+            pass
 
 # handles posting of a sale by store attendant
 
@@ -251,6 +252,7 @@ class PostSale(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('description', required=True, help='Sale description  cannot be blank', type=str)
         parser.add_argument('items', required=True, help=' items cannot be blank')
+        parser.add_argument('user_id', required=True, help='User_id cannot be blank', type=int)
 
         @jwt_required
         def post(self):
@@ -258,6 +260,7 @@ class PostSale(Resource):
             args =  PostSale.parser.parse_args()
             description = args.get('description').strip()
             items = args.get('items')
+            user_id= args.get('user_id')
             total = 400
  
  # error response
@@ -265,13 +268,25 @@ class PostSale(Resource):
                 return make_response(jsonify({'message': 'Sale description  can not be empty'}),400)
             if not items:
                 return make_response(jsonify({'message': 'Sale items  can not be empty'}),400)
+            if not user_id:
+                return make_response(jsonify({'message': 'user_id  can not be empty'}),400)
+
+
+            new_sale = Sale(
+                description=description ,
+                items=items,
+                total=total,
+                user_id = user_id
+     
+            )
+
 
             try:
 
-                sale = Sale.create_sale(description,items,total)
+                sales = new_sale.create_new_sale()
 
                 return {
-                'message': 'Sale created successfully','sales': sale,'status':'ok'
+                'message': 'sale created successfully','status':'ok'
 
                  },201
 
@@ -286,9 +301,14 @@ class GetSales(Resource):
 
         @jwt_required
         def get(self):
+ 
+            if Sale.get_sales() :
+                rows=  Sale.get_sales()
+                return jsonify({'message': 'sales retrieved succesfully','status':'ok','sale':rows})
+            return jsonify({'message':'no sales yet'})
                 
-            result = Sale.get_sales()
-            return {'message': 'sales retrieved succesfully','status':'ok','sale':result}, 200
+
+
 
 
 
@@ -297,10 +317,12 @@ class EachSale(Resource):
 
         @jwt_required
         def get(self,sale_id):
+            rows=  Sale.get_each_sale(sale_id)
+            if rows:
+                return jsonify({'message': 'sale retrieved succesfully','status':'ok','products': rows},200)
+            else:
+                return jsonify({'message':'not found' }),404
 
-            result = Sale.get_each_sale(sale_id)
-
-            return {'message': 'sale retrieved succesfully','status':'ok','products': result}, 200
 
 
 class TokenRefresh(Resource):

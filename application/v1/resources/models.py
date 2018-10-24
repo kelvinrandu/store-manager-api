@@ -5,10 +5,10 @@ from psycopg2 import sql
 from psycopg2 import connect
 from application.database import DatabaseConnect
 
-users= []
-products = []
-sales = []
-
+# users= []
+# products = []
+# sales = []
+db = DatabaseConnect()
 
 
 class User():
@@ -20,12 +20,13 @@ class User():
         self.role = 0
 
 
-    @classmethod
+  
     def create_store_attendant(self):
+       
         try:
             db.cursor.execute(
                 """
-                INSERT INTO users(name, email, password,role)
+                INSERT INTO users(username, email, password,role)
                 VALUES(%s,%s,%s,%s)""",
                 (self.username, self.email,self.password,self.role))
 
@@ -78,21 +79,22 @@ class User():
 class Product():
 
     # product class constructor
-    def __init__(self,name,price,quantity):
+    def __init__(self,name,price,quantity,user_id):
         self.name = name
         self.price = price
         self.quantity = quantity
+        self.user_id = user_id
 
 # create a product by admin
-        @staticmethod
-        def create_product(self):
+        
+    def create_new_product(self):
 
         try:
             db.cursor.execute(
                 """
-                INSERT INTO products(name, price, quantity)
-                VALUES(%s,%s,%s)""",
-                (self.name, self.price,self.quantity))
+                INSERT INTO products(name, price, quantity,created_by)
+                VALUES(%s,%s,%s,%s)""",
+                (self.name, self.price,self.quantity,self.user_id))
 
             
                        
@@ -103,98 +105,116 @@ class Product():
             print(e)
             return ("ran into trouble creating your product ")
 
-# fetch all products by admin
-        @staticmethod
-        def get_products():
-            try:
-      
-                db.cursor.execute("""SELECT * FROM products  """)
-                # db.cursor.commit()
-                rows = db.cursor.fetchall()
+# checks if product name exists
+    @staticmethod
+    def find_product_by_name(name):
 
-                return rows
+        db.cursor.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
+        rows = db.cursor.fetchone()
+               
+        return rows
+
+# fetch all products by admin
+    @staticmethod  
+    def get_products():
+        try:
+      
+            db.cursor.execute("""SELECT * FROM products  """)
+            # db.cursor.commit()
+            rows = db.cursor.fetchall()
+
+            return rows
         
-            except Exception as e:
-                print(e)
-                return {'message': 'Something went wrong'}, 500
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 
 # fetch a single product 
-        @staticmethod
-        def get_each_product(product_id):
-            try:
+    @staticmethod
+    def get_each_product(product_id):
+        try:
       
-                db.cursor.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
-                # db.cursor.commit()
-                rows = db.cursor.fetchall()
+            db.cursor.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
+            # db.cursor.commit()
+            rows = db.cursor.fetchall()
         
-                return rows
+            return rows
 
         
-            except Exception as e:
-                print(e)
-                return {'message': 'Something went wrong'}, 500
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
+# checks if product name exists
+        @staticmethod
+        def find_product_by_name(name):
+
+            db.cursor.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
+            rows = db.cursor.fetchone()
+               
+            return rows
 
 
 class Sale():
 
 # product class constructor
-    def __init__(self,description,items,total):
+    def __init__(self,description,items,total,user_id):
         self.description = description
         self.items = items
         self.total = total
+        self.user_id = user_id
 
 # create a sale record by store attendant
-        @classmethod
-        def create_sale(self):
-            try:
-                db.cursor.execute(
-                    """
-                    INSERT INTO sales(description, items, total)
-                    VALUES(%s,%s,%s)""",
-                (self.description, self.items,self.total))
+    def create_new_sale(self):
+        try:
+            db.cursor.execute(
+                """
+                INSERT INTO sales(description, items, total,created_by)
+                VALUES(%s,%s,%s,%s)""",
+            (self.description, self.items,self.total,self.user_id))
 
             
                        
-                return 'sale created succesfully'
+            return 'sale created succesfully'
         
 
-            except Exception as e:
-                print(e)
-                return ("ran into trouble creating your sale ")
+        except Exception as e:
+            print(e)
+            return ("ran into trouble creating your sale ")
 
 
 # fetch all sales
-        @staticmethod
-        def get_sales():
-            try:
+    @staticmethod
+    def get_sales():
+        try:
       
-                db.cursor.execute("""SELECT * FROM sales  """)
-                # db.cursor.commit()
-                rows = db.cursor.fetchall()
+            db.cursor.execute("""SELECT * FROM sales  """)
+            # db.cursor.commit()
+            rows = db.cursor.fetchall()
 
-                return rows
+            return rows
         
-            except Exception as e:
-                print(e)
-                return {'message': 'Something went wrong'}, 500
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 
 # fetch a single sale
-        @staticmethod
-        def get_each_sale(sale_id):
-            try:
+    @staticmethod
+    def get_each_sale(sale_id):
+        try:
       
-                db.cursor.execute("""SELECT * FROM sales WHERE id='{}' """.format(sales_id))
-                # db.cursor.commit()
-                rows = db.cursor.fetchall()
+            db.cursor.execute("""SELECT * FROM sales WHERE id='{}' """.format(sale_id))
+            # db.cursor.commit()
+            rows = db.cursor.fetchall()
         
-                return rows
+            return rows
 
         
-            except Exception as e:
-                print(e)
-                return {'message': 'Something went wrong'}, 500
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 
 
