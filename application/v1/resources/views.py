@@ -138,6 +138,7 @@ class UserLogin(Resource):
             refresh_token = create_refresh_token(identity = current_user['username'])
             return {
                 'message': 'User was logged in succesfully',
+                'status':'ok',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
                 'username': current_user['username']
@@ -487,13 +488,43 @@ class DeleteCategory(Resource):
             Category.delete_category(category_id,user_id)
 
             return {
-                'message': 'category  was successfuly deleted'
+                'message': 'category  was successfuly deleted',
+                'status':'ok'
 
                 },200
 
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
+
+# make store attendant admin
+class MakeAdmin(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('admin_id', required=True, help='admin id cannot be blank', type=int)
+
+    @jwt_required
+    def post(self,user_id):
+        args =  MakeAdmin.parser.parse_args()
+        admin_id = args.get('admin_id')
+
+        if not admin_id:
+            return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)   
+
+ # attempt to make store attendant admin
+        try:
+            User.make_admin(user_id)
+
+            return {
+                'message': 'attendant successfuly made admin',
+                'status':'ok'
+
+                },200
+
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
+
 
 
 class TokenRefresh(Resource):
@@ -553,3 +584,4 @@ api.add_resource(PostCategory, '/api/v1/categories/')
 api.add_resource(GetCategory, '/api/v1/categories/')
 api.add_resource(ModifyCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(DeleteCategory, '/api/v1/categories/<int:category_id>/')
+api.add_resource(MakeAdmin, '/api/v1/make/admin/<int:user_id>/')

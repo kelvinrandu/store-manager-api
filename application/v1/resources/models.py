@@ -59,6 +59,21 @@ class User():
         return rows
 
 
+    # make admin
+    @staticmethod
+    def make_admin(user_id):
+        role = 1
+        try:
+      
+            db.cursor.execute("""UPDATE users  SET role='{}'  WHERE id='{}' """.format(role,user_id))
+            # db.cursor.commit()
+        
+            return 'store attendant has been made admin'
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 #     # generate hash
     @staticmethod
@@ -72,10 +87,7 @@ class User():
 
         
 
-
-
-
-
+# this class handles product
 class Product():
 
     # product class constructor
