@@ -25,6 +25,7 @@ class UserRegistration(Resource):
     parser.add_argument('username', required=True, help='Username cannot be blank', type=str)
     parser.add_argument('email', required=True, help='Email cannot be blank')
     parser.add_argument('password', required=True, help='Password cannot be blank', type=str)
+    parser.add_argument('user_id', required=True, help='user_id cannot be blank', type=int)
   
 
     # handle create user logic
@@ -35,7 +36,7 @@ class UserRegistration(Resource):
         # remove all whitespaces from input
         args =  UserRegistration.parser.parse_args()
         raw_password = args.get('password')
-        # confirm_password = args.get('confirm_password')
+        user_id = args.get('user_id')
         username = args.get('username').strip()
         email = args.get('email')
 
@@ -49,6 +50,8 @@ class UserRegistration(Resource):
 
         if not email:
             return make_response(jsonify({'message': 'email can not be empty'}),400)
+        if not user_id:
+            return make_response(jsonify({'message': 'user id can not be empty'}),400)
         if not raw_password:
             return make_response(jsonify({'message': 'password cannot be empty'}),400)
         if not username:
@@ -61,7 +64,10 @@ class UserRegistration(Resource):
             return make_response(jsonify({'message' : 'Please input only characters and numbers'}), 400)
 
 
-
+# check if authorized
+        user = User.is_admin(user_id)
+        if user != True:
+            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
      
         
         # # # # upon successful validation check if user by the username exists 
@@ -94,7 +100,7 @@ class UserRegistration(Resource):
                 'status': 'ok',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
-                'user': result
+                'username ': username
                 },201
 
         except Exception as e:
@@ -159,7 +165,7 @@ class PostProducts(Resource):
         parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
         parser.add_argument('price', required=True, help=' Product price cannot be blank',type=int)
         parser.add_argument('quantity', required=True, help='Product quantity cannot be blank', type=int)
-        parser.add_argument('user_id', required=True, help='User_id quantity cannot be blank', type=int)
+        parser.add_argument('user_id', required=True, help='User id quantity cannot be blank', type=int)
 
         @jwt_required
         def post(self):
@@ -181,8 +187,15 @@ class PostProducts(Resource):
             if not quantity:
                 return make_response(jsonify({'message': 'quantity of product cannot be empty'}),400)
             if not user_id:
-                return make_response(jsonify({'message': 'quantity of product cannot be empty'}),400)
+                return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
 
+# check if authorized
+            user = User.is_admin(user_id)
+            if user != True:
+                return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
+
+
+# checks if product by the name exists
             this_product = Product.find_product_by_name(name)
             if this_product:
                 return {'message': 'product already exist'},400 
@@ -245,6 +258,10 @@ class DeleteProduct(Resource):
         args =  DeleteProduct.parser.parse_args()
         user_id = args.get('user_id')
 
+# check if authorized
+        user = User.is_admin(user_id)
+        if user != True:
+            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
 
         # attempt delete product
         try:
@@ -275,7 +292,10 @@ class ModifyProduct(Resource):
         user_id = args.get('user_id')
         name = args.get('name').strip()
 
-   
+# check if authorized
+        user = User.is_admin(user_id)
+        if user != True:
+            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401) 
         
 
         # attempt modify product
@@ -398,6 +418,11 @@ class PostCategory(Resource):
             if not user_id:
                 return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
 
+# check if user is authorized
+            user = User.is_admin(user_id)
+            if user != True:
+                return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)               
+# find if category exists
             this_category = Category.find_category_by_name(name)
             if this_category:
                 return {'message': 'product already exist'},400 
@@ -455,6 +480,11 @@ class ModifyCategory(Resource):
         if not user_id:
             return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
 
+# check if authorized
+        user = User.is_admin(user_id)
+        if user != True:
+            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
+
         # attempt modify category
         try:
             Category.edit_category(category_id,name,user_id)
@@ -483,6 +513,11 @@ class DeleteCategory(Resource):
         if not user_id:
             return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
 
+# check if authorized
+        user = User.is_admin(user_id)
+        if user != True:
+            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
+
         # attempt delete category
         try:
             Category.delete_category(category_id,user_id)
@@ -503,16 +538,22 @@ class MakeAdmin(Resource):
     parser.add_argument('admin_id', required=True, help='admin id cannot be blank', type=int)
 
     @jwt_required
-    def post(self,user_id):
+    def post(self,attendant_id):
         args =  MakeAdmin.parser.parse_args()
-        admin_id = args.get('admin_id')
+        user_id = args.get('admin_id')
+           
 
-        if not admin_id:
-            return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)   
+        if not user_id:
+            return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)  
+
+# check if authorized
+        user = User.is_admin(user_id)
+        if user != True:
+            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401) 
 
  # attempt to make store attendant admin
         try:
-            User.make_admin(user_id)
+            User.make_admin(attendant_id)
 
             return {
                 'message': 'attendant successfuly made admin',
@@ -598,6 +639,11 @@ class UserLogoutRefresh(Resource):
         except:
             return {'message': 'Something went wrong'}, 500
 
+class CheckStatus(Resource):
+    def post(self,user_id):
+        user = User.is_admin(user_id)
+        return jsonify({'message': 'status check','status':'ok','sale':user})
+
 # routes
 api.add_resource(UserRegistration, '/api/v1/auth/signup/')
 api.add_resource(UserLogin, '/api/v1/auth/login/')
@@ -617,5 +663,6 @@ api.add_resource(PostCategory, '/api/v1/categories/')
 api.add_resource(GetCategory, '/api/v1/categories/')
 api.add_resource(ModifyCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(DeleteCategory, '/api/v1/categories/<int:category_id>/')
-api.add_resource(MakeAdmin, '/api/v1/make/admin/<int:user_id>/')
+api.add_resource(MakeAdmin, '/api/v1/make/admin/<int:attendant_id>/')
 api.add_resource(AddCategory, '/api/v1/products/add/category/<int:product_id>/')
+api.add_resource(CheckStatus, '/status/<int:user_id>/')

@@ -12,3 +12,4 @@ class DatabaseConnect():
     def CloseConnection(self):
         
         self.conn.close()
+ 

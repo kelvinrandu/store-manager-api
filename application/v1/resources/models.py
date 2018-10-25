@@ -49,6 +49,19 @@ class User():
                
         return rows
 
+# checks if user is admin
+    @staticmethod
+    def is_admin(user_id):
+
+        db.cursor.execute("""SELECT * FROM users WHERE id='{}' """.format(user_id))
+        rows = db.cursor.fetchone()
+        if rows :
+            if rows['role'] == 1:
+                return True
+            return False
+               
+        return False
+
 # checks if username exists
     @staticmethod
     def find_by_username(username):
@@ -61,11 +74,11 @@ class User():
 
     # make admin
     @staticmethod
-    def make_admin(user_id):
+    def make_admin(attendant_id):
         role = 1
         try:
       
-            db.cursor.execute("""UPDATE users  SET role='{}'  WHERE id='{}' """.format(role,user_id))
+            db.cursor.execute("""UPDATE users  SET role='{}'  WHERE id='{}' """.format(role,attendant_id))
             # db.cursor.commit()
         
             return 'store attendant has been made admin'
