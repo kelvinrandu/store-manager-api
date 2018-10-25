@@ -1,6 +1,7 @@
 from flask_restful import Resource,reqparse,Api
 from flask import Flask,jsonify,request, make_response,Blueprint
 import re
+from application.v1.resources.models import users
 from application.v1.resources.models import User
 from application.v1.resources.models import Sale
 from application.v1.resources.models import Product
@@ -36,7 +37,7 @@ class UserRegistration(Resource):
         raw_password = args.get('password')
         confirm_password = args.get('confirm_password')
         username = args.get('username').strip()
-        email = args.get('email').strip()
+        email = args.get('email')
 
 
 
@@ -69,10 +70,18 @@ class UserRegistration(Resource):
         if current_user != False:
             return {'message': 'username already exist'},400
 
-        # generate hash for user password
+         # # # upon successful validation check if user by the email exists 
+        this_user = User.find_by_email(email)
+        if this_user != False:
+            return {'message': 'email already exist'},400 
+  
+
+        # #generate hash for user password
         password = User.generate_hash(raw_password)
  
-        # attempt sending user to user model
+
+ 
+        # # attempt sending user to user model
         try:
             result= User.create_user(username,email,password)
 
@@ -113,12 +122,12 @@ class UserLogin(Resource):
         if not password:
             return {'message': 'password cannot be empty'},400
 
-        # upon successful validation check if user by the email exists 
+  # upon successful validation check if user by the email exists 
         current_user = User.find_by_email(email)
         if current_user == False:
             return {'message': 'email {} doesn\'t exist'.format(email)},400
         
-        # compare user's password and the hashed password in database
+        # # compare user's password and the hashed password in database
         if User.verify_hash(password,email) == True:
             access_token = create_access_token(identity = email)
             refresh_token = create_refresh_token(identity = email)

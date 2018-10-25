@@ -1,0 +1,194 @@
+FORMAT: 1A
+HOST: https://mystore-manager-api.herokuapp.com/
+
+# MyStoreManager
+
+Store-manager is an api that helps store owners manage sales and product inventory records.
+
+## Register [/ap1/v1/register]
+### Register a new user [POST]
+
++ Request (application/json)
+
+    + Body
+
+      
+            {
+                "username": "testme",
+                "email": "test@gmail.com",
+                "password": "12345678"
+
+            }
+
+
++ Response 201 (application/json)
+
+        [
+            {
+                "message": "User was created succesfully",
+                "status": "ok",
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "user": new_user
+            }
+        ]
+
+## Login [/ap1/v1/login]
+### Login a user [POST]
++ Request (application/json)
+
+    + Body
+
+      
+            {
+                "email": "test@gmail.com",
+                "password": "12345678"
+
+            }
+ 
++ Response 200 (application/json)
+
+        [
+            {
+                "message": "User was logged in succesfully",
+                "status": "ok",
+                "access_token": access_token,
+                "refresh_token": refresh_token
+            }
+        ]
+
+## Products Collection [/ap1/v1/products]
+
+### List All Products [GET]
+
+A logged in user can fetch all available products.
++ Request (application/json)
+
+   + Headers
+             Authorization: Bearer access_token
+
++ Response 200 (application/json)
+
+        [
+            {
+                "message": "products retrieved succesfully",
+                "status":"ok",
+                "products": products
+            }
+        ]
+
+### Create a New Product [POST]
+
+An admin can create a new product using this action. It takes a JSON
+object containing product details including product name,quantity and price.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer access_token
+            
+    + Body
+
+            {
+                "name": "monalisa painting",
+                "quantity": 1,
+                "price": 3000000000
+
+            }
+
+
+
++ Response 201 (application/json)
+
+        [
+            {
+                "message": "product created successfully",
+                "product": products,
+                "status":"ok"
+            }
+        ]
+            
+## Each Products Collection [/ap1/v1/product/<product_id>]
+### Get a single Products [GET]
+A logged in user can fetch a single product using this action.
++ Request (application/json)
+
+   + Headers
+            Authorization: Bearer access_token
+            
++ Response 200 (application/json)
+
+        [
+            {
+                "message": "product retrieved succesfully",
+                "status":"ok",
+                "products": products
+            }
+        ]
+            
+## Sales Collection [/ap1/v1/sales]
+
+### List All Sales [GET]
+An admin  can fetch all  sales using this action.  
++ Request (application/json)
+
+   + Headers
+            Authorization: Bearer access_token
+            
++ Response 200 (application/json)
+
+        [
+            {
+                "message": "sales retrieved succesfully",
+                "status":"ok",
+                "sale":result
+            }
+        ]
+
+### Create a New Sale [POST]
+
+A store attendant can create a new sale using this action. It takes a JSON object containing sale details including description of sale and items
+.
+
++ Request (application/json)
+    + Headers
+
+            Authorization: Bearer access_token
+
+    + Body
+
+            {
+                "description": "painting gallore",
+                "items": {"id":1,"name":"monalisa","price":3000000,"quantity":1}
+
+            }
+  
++ Response 201 (application/json)
+
+        [
+            {
+                "message": "Sale created successfully",
+                "sales": sale,
+                "status":"ok"
+            }
+        ]
+
+## Each Sale Collection [/ap1/v1/sale/<sale_id>]
+
+### Get a single Sale [GET]
+An admin can fetch a specific sale using this action. 
++ Request (application/json)
+
+   + Headers
+            Authorization: Bearer access_token
+            
++ Response 200 (application/json)
+
+        [
+            {
+                "message": "sale retrieved succesfully",
+                "status":"ok",
+                "products": result
+            }
+        ]
