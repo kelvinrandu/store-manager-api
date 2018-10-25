@@ -5,7 +5,7 @@ HOST: https://mystore-manager-api.herokuapp.com/
 
 Store-manager is an api that helps store owners manage sales and product inventory records.
 
-## Register [/ap1/v1/register]
+## Register [/ap1/v1/register/]
 ### Register a new user [POST]
 
 + Request (application/json)
@@ -33,7 +33,7 @@ Store-manager is an api that helps store owners manage sales and product invento
             }
         ]
 
-## Login [/ap1/v1/login]
+## Login [/ap1/v1/login/]
 ### Login a user [POST]
 + Request (application/json)
 
@@ -57,7 +57,7 @@ Store-manager is an api that helps store owners manage sales and product invento
             }
         ]
 
-## Products Collection [/ap1/v1/products]
+## Products Collection [/ap1/v1/products/]
 
 ### List All Products [GET]
 
@@ -109,7 +109,7 @@ object containing product details including product name,quantity and price.
             }
         ]
             
-## Each Products Collection [/ap1/v1/product/<product_id>]
+## Each Products Collection [/ap1/v1/product/<product_id>/]
 ### Get a single Products [GET]
 A logged in user can fetch a single product using this action.
 + Request (application/json)
@@ -127,7 +127,7 @@ A logged in user can fetch a single product using this action.
             }
         ]
             
-## Sales Collection [/ap1/v1/sales]
+## Sales Collection [/ap1/v1/sales/]
 
 ### List All Sales [GET]
 An admin  can fetch all  sales using this action.  
@@ -174,7 +174,7 @@ A store attendant can create a new sale using this action. It takes a JSON objec
             }
         ]
 
-## Each Sale Collection [/ap1/v1/sale/<sale_id>]
+## Each Sale Collection [/ap1/v1/sale/<sale_id>/]
 
 ### Get a single Sale [GET]
 An admin can fetch a specific sale using this action. 
