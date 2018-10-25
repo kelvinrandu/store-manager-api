@@ -82,6 +82,10 @@ class Product():
 
             return products
 
+# checks if product exists
+        @staticmethod
+        def find_by_name(name):
+            return next((item for item in products if item["name"] == name), False)
 
 # fetch a single product 
         @staticmethod
@@ -115,4 +119,3 @@ class Sale():
         def get_each_sale(sale_id):
             sale_index = sale_id - 1
             return cart[sale_index]
-

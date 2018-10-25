@@ -42,14 +42,14 @@ class UserTestCase(unittest.TestCase):
                                  content_type='application/json')
         resp_data = json.loads(res.data.decode())
         self.assertEqual(res.status_code, 400)
-        # self.assertEqual(resp_data['response'], 'invalid email')
+        self.assertEqual(resp_data['message'], 'email can not be empty')
 
     def test_sign_up_invalid_email(self):
         res = self.client.post(REGISTER_URL, data=json.dumps(self.register_user_invalid_email),
                                  content_type='application/json')
         resp_data = json.loads(res.data.decode())
         self.assertEqual(res.status_code, 400)
-        # self.assertEqual(resp_data['response'], 'invalid email')
+        self.assertEqual(resp_data['message'], 'Invalid email')
 
 
     def test_sign_up_empty_username(self):
@@ -57,7 +57,7 @@ class UserTestCase(unittest.TestCase):
                                  content_type='application/json')
         resp_data = json.loads(res.data.decode())
         self.assertEqual(res.status_code, 400)
-        # self.assertEqual(resp_data['response'], 'invalid username')
+        self.assertEqual(resp_data['message'], 'username cannot be empty')
 
 
     def test_sign_up_empty_password(self):

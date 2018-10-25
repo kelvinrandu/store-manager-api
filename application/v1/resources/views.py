@@ -60,13 +60,14 @@ class UserRegistration(Resource):
         if not (re.match(username_format, username)):
             return make_response(jsonify({'message' : 'Please input only characters and numbers'}), 400)
 
+        # upon successful validation check if user by the email exists 
+        current_user = User.find_by_email(email)
+        if current_user != False:
+            return {'message': 'email already exist'},400
 
-
-     
-
-        # # # upon successful validation check if user by the username exists 
-        this_user = User.find_by_username(username)
-        if this_user != False:
+        # upon successful validation check if user by the email exists 
+        current_user = User.find_by_username(username)
+        if current_user != False:
             return {'message': 'username already exist'},400
 
          # # # upon successful validation check if user by the email exists 
@@ -92,7 +93,7 @@ class UserRegistration(Resource):
                 'status': 'ok',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
-                'user': result
+                'user':result
                 }, 201
 
         except Exception as e:
@@ -124,9 +125,7 @@ class UserLogin(Resource):
   # upon successful validation check if user by the email exists 
         current_user = User.find_by_email(email)
         if current_user == False:
-            return {'message': 'email does not  exist'},400
-
-
+            return {'message': 'email {} doesn\'t exist'.format(email)},400
         
         # # compare user's password and the hashed password in database
         if User.verify_hash(password,email) == True:
@@ -177,7 +176,10 @@ class PostProducts(Resource):
             if not quantity:
                 return make_response(jsonify({'message': 'quantity of product cannot be empty'}),400)
 
-
+        # upon successful validation check if user by the email exists 
+            product = Product.find_by_name(name)
+            if product != False:
+                return {'message': 'product {} already exists'.format(name)},400
 
             try:
 
@@ -294,9 +296,9 @@ class SecretResource(Resource):
 # routes
 api.add_resource(UserRegistration, '/api/v1/register/')
 api.add_resource(UserLogin, '/api/v1/login/')
-# api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
-# api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh/')
-# api.add_resource(TokenRefresh, '/api/v1/token/refresh/')
+# api.add_resource(UserLogoutAccess, '/api/v1/logout/access')
+# api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh')
+# api.add_resource(TokenRefresh, '/api/v1/token/refresh')
 api.add_resource(SecretResource, '/api/v1/secret/')
 api.add_resource(PostProducts, '/api/v1/products/')
 api.add_resource(GetProducts, '/api/v1/products/')

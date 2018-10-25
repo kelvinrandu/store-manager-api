@@ -18,7 +18,7 @@ class ProductTestCase(unittest.TestCase):
         '''Initialize app and define test variables'''
         self.app = create_app('testing')
         self.client = self.app.test_client()
-        self. products = { "name": "name", "quantity":12, "price":2000 }                              
+        self. products = { "name": "product", "quantity":12, "price":2000 }                              
         self.empty_products = { "name": "", "quantity":12,"price":2000 }
         self.empty_price = { "name": "jfjfj","quantity":12,"price":"" }
         self.empty_quantity = { "name": "jfjfj","quantity":"","price":3556 }
@@ -33,23 +33,6 @@ class ProductTestCase(unittest.TestCase):
 
 
 
-    def test_get_products(self):
-        '''Test for  creating a product '''
-
-        response = self.client.post(CREATE_PRODUCT_URL,
-                                    data = json.dumps(self.products), 
-                                    headers=dict(Authorization="Bearer " + self.login()),
-                                    content_type = 'application/json')
-        self.assertEqual(response.status_code, 201)
-
-        '''Test  gets all products'''
-        response = self.client.get(GET_ALL_PRODUCTS,
-                                   headers=dict(Authorization="Bearer " + self.login()),
-                                   content_type = 'application/json')   
-        resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'products retrieved succesfully')
-        self.assertEqual(response.status_code, 200)
-
     def test_create_product(self):
         '''Test for  creating a product '''
         response = self.client.post(CREATE_PRODUCT_URL,
@@ -59,6 +42,19 @@ class ProductTestCase(unittest.TestCase):
         resp_data = json.loads(response.data.decode())
         self.assertTrue(resp_data['message'] == 'product created successfully')
         self.assertEqual(response.status_code, 201)
+
+    def test_get_product(self):
+ 
+
+        '''Test  gets all products'''
+        response = self.client.get(GET_ALL_PRODUCTS,
+                                   headers=dict(Authorization="Bearer " + self.login()),
+                                   content_type = 'application/json')   
+        resp_data = json.loads(response.data.decode())
+        self.assertTrue(resp_data['message'] == 'products retrieved succesfully')
+        self.assertEqual(response.status_code, 200)
+
+
 
 
     def test_empty_name_product(self):
@@ -99,12 +95,7 @@ class ProductTestCase(unittest.TestCase):
 
 
     def test_get_products(self):
-        '''Test Get all products'''
-        response = self.client.post(CREATE_PRODUCT_URL,
-                                    data = json.dumps(self.products), 
-                                    headers=dict(Authorization="Bearer " + self.login()),
-                                    content_type = 'application/json')
-        self.assertEqual(response.status_code, 201)
+
 
         '''Test  gets all products'''
         response = self.client.get(GET_ALL_PRODUCTS,
@@ -117,14 +108,6 @@ class ProductTestCase(unittest.TestCase):
 
 
     def test_get_single_product(self):
-        '''Test to get a single product'''
-
-        '''Add a product'''
-        response = self.client.post(CREATE_PRODUCT_URL,
-                                    data = json.dumps(self.products), 
-                                    headers=dict(Authorization="Bearer " + self.login()),
-                                    content_type = 'application/json')
-        self.assertEqual(response.status_code, 201)
 
         '''return a single product'''
         response = self.client.get(GET_SINGLE_PRODUCT,

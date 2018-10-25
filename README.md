@@ -56,6 +56,7 @@ https://mystore-manager-api.herokuapp.com/
 | GET     | https://mystore-manager-api.herokuapp.com/api/v1/sale/<int: sale_id>/  |  Fetches a single sale   |
 
 
+
 ## TESTING THE APP
  The endpoints above can be tested  using [postman](https://www.getpostman.com/)
 
