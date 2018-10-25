@@ -38,14 +38,14 @@ The store attendants have the priviledge to do the following:
 
 | Methods        | Url          | Description |
 | ------------- |:-------------:| -----:|
-| POST   | http://127.0.0.1:5000/api/v1/login       |  login user      | 
-| POST   | http://127.0.0.1:5000/api/v1/register          |  register user         |
-| POST   | http://127.0.0.1:5000/api/v1/products        |  create product      | 
-| POST   | http://127.0.0.1:5000/api/v1/sales           |  create sale         | 
-| GET     | http://127.0.0.1:5000/api/v1/products       |  Fetch all product   |       
-| GET     | http://127.0.0.1:5000/api/v1/sales          |  Fetch all sales     |      
-| GET     | http://127.0.0.1:5000/api/v1/product/<int: product_id>  |  Fetches a single product   |
-| GET     | http://127.0.0.1:5000/api/v1/sale/<int: sale_id>  |  Fetches a single sale   |
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/login       |  login user      | 
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/register          |  register user         |
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/products        |  create product      | 
+| POST   | https://mystore-manager-api.herokuapp.com/api/v1/sales           |  create sale         | 
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/products       |  Fetch all product   |       
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sales          |  Fetch all sales     |      
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/product/<int: product_id>  |  Fetches a single product   |
+| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sale/<int: sale_id>  |  Fetches a single sale   |
 
 
 ## TESTING THE APP
