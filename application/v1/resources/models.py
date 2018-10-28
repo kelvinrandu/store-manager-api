@@ -39,7 +39,16 @@ class User():
             print(e)
             return ("ran into trouble registering you")
 
+# checks if user with the id exists
+    @staticmethod
+    def find_by_id(user_id):
 
+        db.cursor.execute("""SELECT * FROM users WHERE id='{}' """.format(user_id))
+        rows = db.cursor.fetchone()
+        if rows :
+            return True
+               
+        return False
 # checks if email exists
     @staticmethod
     def find_by_email(email):

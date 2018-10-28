@@ -3,6 +3,8 @@ from application.v1.resources.views import store_manager
 from instance.config import app_config
 from flask_jwt_extended import JWTManager
 
+
+
 def create_app(config):
     app = Flask(__name__)
     app.config.from_object(app_config[config])
