@@ -1,12 +1,14 @@
-
 import unittest
 import json
 import sys
-
+from psycopg2 import connect, extras
 from application.app import create_app
-from application.database import TestDatabaseConnect
-db = TestDatabaseConnect()
+from application.database import conn,create_tables,delete_tables
 
+
+
+# db = DatabaseConnect()
+db = conn.cursor(cursor_factory=extras.RealDictCursor)
 
 REGISTER_URL = '/api/v1/auth/signup/'
 LOGIN_URL = '/api/v1/auth/login/'
@@ -16,9 +18,11 @@ LOGIN_URL = '/api/v1/auth/login/'
 class UserTestCase(unittest.TestCase):
 
     def setUp(self):
-        '''Initialize app and define test variables'''
-        self.app = create_app('testing')
+        self.app = create_app("testing")
         self.client = self.app.test_client()
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+
         self.register_user = { "email": "john23@gmail.com", "password":"12345678", "username":"johny23","user_id":1 } 
         # self.register_user1 = { "email": "testme@gmail.com", "password":"12345678", "username":"testme" }  
         self.register_user_empty_email = { "email": "", "password":"12345678", "username":"test" }
@@ -29,8 +33,11 @@ class UserTestCase(unittest.TestCase):
         self.login_user = { "email": "testme@gmail.com", "password":"12345678" }
         self.login_user_empty_email= { "email": "", "password":"12345678" }
         self.login_user_empty_password= { "email": "kelvin@gmail.com", "password":"" }
+    
+        # with self.app.app_context():
+        #     self.db  = TestDatabaseConnect()
 
-        db.create_tables()
+        create_tables()
         # self.client.post(REGISTER_URL, data=json.dumps(self.register_user1),
         #                                     content_type = 'application/json')
         
@@ -116,5 +123,4 @@ class UserTestCase(unittest.TestCase):
     #     self.assertEqual(res_login.status_code, 400)
     #     # self.assertEqual(resp_data['message'], '')
 
-    def tearDown(self):
-        db.delete_tables()
+        # delete_tables()

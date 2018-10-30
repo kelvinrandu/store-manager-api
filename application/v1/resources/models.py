@@ -1,14 +1,16 @@
 from flask_restful import Resource,reqparse
+from psycopg2 import connect, extras
 from flask import Flask,jsonify,request, make_response
 from passlib.hash import pbkdf2_sha256 as sha256
 from psycopg2 import sql
 from psycopg2 import connect
-from application.database import DatabaseConnect
+# from application.database import DatabaseConnect
+from application.database import conn
 
-# users= []
-# products = []
-# sales = []
-db = DatabaseConnect()
+
+# db = DatabaseConnect()
+cur = conn.cursor(cursor_factory=extras.RealDictCursor)
+
 
 
 class User():
@@ -24,11 +26,13 @@ class User():
     def create_store_attendant(self):
        
         try:
-            db.cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO users(username, email, password,role)
                 VALUES(%s,%s,%s,%s)""",
                 (self.username, self.email,self.password,self.role))
+
+            conn.commit()
 
             
                        
@@ -43,8 +47,8 @@ class User():
     @staticmethod
     def find_by_id(user_id):
 
-        db.cursor.execute("""SELECT * FROM users WHERE id='{}' """.format(user_id))
-        rows = db.cursor.fetchone()
+        cur.execute("""SELECT * FROM users WHERE id='{}' """.format(user_id))
+        rows = cur.fetchone()
         if rows :
             return True
                
@@ -53,8 +57,8 @@ class User():
     @staticmethod
     def find_by_email(email):
 
-        db.cursor.execute("""SELECT * FROM users WHERE email='{}' """.format(email))
-        rows = db.cursor.fetchone()
+        cur.execute("""SELECT * FROM users WHERE email='{}' """.format(email))
+        rows = cur.fetchone()
                
         return rows
 
@@ -62,8 +66,8 @@ class User():
     @staticmethod
     def is_admin(user_id):
 
-        db.cursor.execute("""SELECT * FROM users WHERE id='{}' """.format(user_id))
-        rows = db.cursor.fetchone()
+        cur.execute("""SELECT * FROM users WHERE id='{}' """.format(user_id))
+        rows = cur.fetchone()
         if rows :
             if rows['role'] == 1:
                 return True
@@ -75,8 +79,8 @@ class User():
     @staticmethod
     def find_by_username(username):
 
-        db.cursor.execute("""SELECT * FROM users WHERE username='{}' """.format(username))
-        rows = db.cursor.fetchone()
+        cur.execute("""SELECT * FROM users WHERE username='{}' """.format(username))
+        rows = cur.fetchone()
                
         return rows
 
@@ -87,8 +91,9 @@ class User():
         role = 1
         try:
       
-            db.cursor.execute("""UPDATE users  SET role='{}'  WHERE id='{}' """.format(role,attendant_id))
+            cur.execute("""UPDATE users  SET role='{}'  WHERE id='{}' """.format(role,attendant_id))
             # db.cursor.commit()
+            conn.commit()
         
             return 'store attendant has been made admin'
 
@@ -124,12 +129,13 @@ class Product():
     def create_new_product(self):
 
         try:
-            db.cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO products(name, price, quantity,created_by)
                 VALUES(%s,%s,%s,%s)""",
                 (self.name, self.price,self.quantity,self.user_id))
 
+            conn.commit()
             
                        
             return 'product created succesfully'
@@ -143,8 +149,8 @@ class Product():
     @staticmethod
     def find_product_by_name(name):
 
-        db.cursor.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
-        rows = db.cursor.fetchone()
+        cur.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
+        rows = cur.fetchone()
                
         return rows
 
@@ -153,9 +159,9 @@ class Product():
     def get_products():
         try:
       
-            db.cursor.execute("""SELECT * FROM products  """)
+            cur.execute("""SELECT * FROM products  """)
             # db.cursor.commit()
-            rows = db.cursor.fetchall()
+            rows = cur.fetchall()
 
             return rows
         
@@ -169,9 +175,9 @@ class Product():
     def get_each_product(product_id):
         try:
       
-            db.cursor.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
+            cur.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
             # db.cursor.commit()
-            rows = db.cursor.fetchall()
+            rows = cur.fetchall()
         
             return rows
 
@@ -185,8 +191,8 @@ class Product():
     @staticmethod
     def find_product_by_name(name):
 
-        db.cursor.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
-        rows = db.cursor.fetchone()
+        cur.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
+        rows = cur.fetchone()
                
         return rows
 
@@ -196,8 +202,9 @@ class Product():
   
         try:
       
-            db.cursor.execute("""UPDATE products  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,product_id))
+            cur.execute("""UPDATE products  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,product_id))
             # db.cursor.commit()
+            conn.commit()
         
             return 'product edited'
 
@@ -212,8 +219,9 @@ class Product():
   
         try:
       
-            db.cursor.execute("""DELETE FROM products WHERE id='{}' """.format(product_id))
+            cur.execute("""DELETE FROM products WHERE id='{}' """.format(product_id))
             # db.cursor.commit()
+            conn.commit()
         
             return 'product deleted succesfully'
 
@@ -228,8 +236,9 @@ class Product():
   
         try:
       
-            db.cursor.execute("""UPDATE products  SET category='{}'  WHERE id='{}' """.format(category_id,product_id))
+            cur.execute("""UPDATE products  SET category='{}'  WHERE id='{}' """.format(category_id,product_id))
             # db.cursor.commit()
+            conn.commit()
         
             return 'category added to product'
 
@@ -250,11 +259,12 @@ class Sale():
 # create a sale record by store attendant
     def create_new_sale(self):
         try:
-            db.cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO sales(description, items, total,created_by)
                 VALUES(%s,%s,%s,%s)""",
             (self.description, self.items,self.total,self.user_id))
+            conn.commit()
 
             
                        
@@ -271,9 +281,9 @@ class Sale():
     def get_sales():
         try:
       
-            db.cursor.execute("""SELECT * FROM sales  """)
+            cur.execute("""SELECT * FROM sales  """)
             # db.cursor.commit()
-            rows = db.cursor.fetchall()
+            rows = cur.fetchall()
 
             return rows
         
@@ -287,9 +297,9 @@ class Sale():
     def get_each_sale(sale_id):
         try:
       
-            db.cursor.execute("""SELECT * FROM sales WHERE id='{}' """.format(sale_id))
+            cur.execute("""SELECT * FROM sales WHERE id='{}' """.format(sale_id))
             # db.cursor.commit()
-            rows = db.cursor.fetchall()
+            rows = cur.fetchall()
         
             return rows
 
@@ -309,11 +319,12 @@ class Category():
 # create a sale record by store attendant
     def create_new_category(self):
         try:
-            db.cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO categories( name,created_by)
                 VALUES(%s,%s)""",
             ( self.name,self.user_id))
+            conn.commit()
 
             
                        
@@ -328,8 +339,8 @@ class Category():
     @staticmethod
     def find_category_by_name(name):
 
-        db.cursor.execute("""SELECT * FROM categories WHERE name='{}' """.format(name))
-        rows = db.cursor.fetchone()
+        cur.execute("""SELECT * FROM categories WHERE name='{}' """.format(name))
+        rows = cur.fetchone()
                
         return rows
 
@@ -338,9 +349,9 @@ class Category():
     def get_categories():
         try:
       
-            db.cursor.execute("""SELECT * FROM categories  """)
+            cur.execute("""SELECT * FROM categories  """)
             # db.cursor.commit()
-            rows = db.cursor.fetchall()
+            rows = cur.fetchall()
 
             return rows
         
@@ -354,8 +365,9 @@ class Category():
   
         try:
       
-            db.cursor.execute("""UPDATE categories  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,category_id))
+            cur.execute("""UPDATE categories  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,category_id))
             # db.cursor.commit()
+            conn.commit()
         
             return 'product edited'
 
@@ -370,8 +382,9 @@ class Category():
   
         try:
       
-            db.cursor.execute("""DELETE FROM categories WHERE id='{}' """.format(category_id))
+            cur.execute("""DELETE FROM categories WHERE id='{}' """.format(category_id))
             # db.cursor.commit()
+            conn.commit()
         
             return 'product deleted succesfully'
 
