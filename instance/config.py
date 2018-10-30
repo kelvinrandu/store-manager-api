@@ -1,40 +1,40 @@
 import os
 
-
-
-
-# Base configuration
 class Config(object):
+    """Parent configuration class."""
     DEBUG = False
-    SECRET = os.getenv('STOREMANAGER_SECRET', 'KeepYourSecretsToYourself')
+    CSRF_ENABLED = True
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
 
-
-# Dev configuration
-class DevConfig(Config):
+class DevelopmentConfig(Config):
+    """Configurations for Development."""
     DEBUG = True
 
 
-# Test configuration
-class TestConfig(Config):
+class TestingConfig(Config):
+    """Configurations for Testing, with a separate test database."""
     TESTING = True
     DEBUG = True
+    DATABASE_URL = os.getenv("DATABASE_TEST_URL")
+    PRESERVE_CONTEXT_ON_EXCEPTION = True
 
 
-# Staging configuration
 class StagingConfig(Config):
+    """Configurations for Staging."""
     DEBUG = True
 
 
-# Production configuration
 class ProductionConfig(Config):
+    """Configurations for Production."""
     DEBUG = False
     TESTING = False
 
 
-app_config = {
-    'development': DevConfig,
-    'testing': TestConfig,
+APP_CONFIG = {
+    'development': DevelopmentConfig,
+    'testing': TestingConfig,
     'staging': StagingConfig,
-    'production': ProductionConfig 
+    'production': ProductionConfig,
 }
