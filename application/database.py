@@ -8,12 +8,16 @@ if environment == 'testing':
     conn = connect(os.getenv('DATABASE_URL'))
     cur = conn.cursor()
     print('connect to test database')
-    print(conn)
+    
 if environment == 'development':
     conn = connect(os.getenv('DATABASE_URL'))
     cur = conn.cursor()
     print('connect to develop database')
-    print(conn)
+
+if environment == 'production':
+    conn = connect(os.getenv('DATABASE_URL'))
+    cur = conn.cursor()
+    print('connect to develop database')    
 # DATABASE_URL = APP_CONFIG[environment].DATABASE_URL
 # conn = connect(DATABASE_URL)
 

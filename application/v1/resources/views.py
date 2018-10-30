@@ -31,7 +31,10 @@ class UserRegistration(Resource):
     # handle create user logic
 
     def post(self):
-        
+        # claims = get_jwt_claims()
+        # admin="admin"
+        # if claims["role"] != 1 :
+        #     return make_response(jsonify({'message': 'you are not authorized to perform this function'}),400)
 
         # remove all whitespaces from input
         args =  UserRegistration.parser.parse_args()
@@ -166,6 +169,7 @@ class PostProducts(Resource):
         parser.add_argument('price', required=True, help=' Product price cannot be blank',type=int)
         parser.add_argument('quantity', required=True, help='Product quantity cannot be blank', type=int)
         parser.add_argument('user_id', required=True, help='User id quantity cannot be blank', type=int)
+        parser.add_argument('min_stock', required=True, help='Minimum stock quantity cannot be blank', type=int)
 
         @jwt_required
         def post(self):
@@ -177,6 +181,7 @@ class PostProducts(Resource):
             price = args.get('price')
             user_id = args.get('user_id')
             quantity = args.get('quantity')
+            min_stock = args.get('min_stock')
 
 
 # error response
@@ -188,6 +193,8 @@ class PostProducts(Resource):
                 return make_response(jsonify({'message': 'quantity of product cannot be empty'}),400)
             if not user_id:
                 return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
+            if not min_stock:
+                return make_response(jsonify({'message': 'minimum stock  cannot be empty'}),400)
 
 # check if authorized
             user = User.is_admin(user_id)
@@ -204,6 +211,7 @@ class PostProducts(Resource):
                 name=name ,
                 price=price,
                 quantity = quantity,
+                min_stock = min_stock,
                 user_id = user_id
      
             )
@@ -321,30 +329,60 @@ class PostSale(Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('description', required=True, help='Sale description  cannot be blank', type=str)
-        parser.add_argument('items', required=True, help=' items cannot be blank')
         parser.add_argument('user_id', required=True, help='User_id cannot be blank', type=int)
+        parser.add_argument('product_id', required=True, help='User_id cannot be blank', type=int)
+        parser.add_argument('quantity', required=True, help='User_id cannot be blank', type=int)
 
         @jwt_required
         def post(self):
 
             args =  PostSale.parser.parse_args()
             description = args.get('description').strip()
-            items = args.get('items')
+            product_id = args.get('product_id')
             user_id= args.get('user_id')
+            quantity= args.get('quantity')
             total = 400
  
- # error response
+ # validation of user input
             if not description:
                 return make_response(jsonify({'message': 'Sale description  can not be empty'}),400)
-            if not items:
-                return make_response(jsonify({'message': 'Sale items  can not be empty'}),400)
+            if not product_id:
+                return make_response(jsonify({'message': 'product id  can not be empty'}),400)
             if not user_id:
                 return make_response(jsonify({'message': 'user_id  can not be empty'}),400)
+            if not quantity:
+                return make_response(jsonify({'message': 'quantity of product  can not be empty'}),400)
+
+# check if product exists
+            this_product = Product.find_by_id(product_id)
+            if this_product != True:
+                return make_response(jsonify({'message': 'no product by the provided id exists'}),400)
+
+# checks if user_id exists
+            this_user = User.find_by_id(user_id)
+            if this_user != True:
+                return make_response(jsonify({'message': 'no user by the provided id exists'}),400)
 
 
+# checks if quantity does not exceed the quantity in stock and after sale  minimum stock is maintaned
+            stock = Product.find_stock(user_id)
+            min_stock = stock['min_stock']
+            stock_quantity = stock['quantity']
+            gap = stock_quantity - min_stock
+            
+            
+
+            if quantity > gap :
+                 return {'message': 'only a maximum of  {}  is allowed '.format(gap)},400
+
+            total = stock['price'] * quantity
+            remaining_quantity = stock_quantity - quantity
+
+            
             new_sale = Sale(
                 description=description ,
-                items=items,
+                product_id=product_id,
+                quantity=quantity,
                 total=total,
                 user_id = user_id
      
@@ -354,6 +392,7 @@ class PostSale(Resource):
             try:
 
                 sales = new_sale.create_new_sale()
+                Product.updated_product(product_id,remaining_quantity)
 
                 return {
                 'message': 'sale created successfully','status':'ok'

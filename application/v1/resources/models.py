@@ -12,7 +12,6 @@ from application.database import conn
 cur = conn.cursor(cursor_factory=extras.RealDictCursor)
 
 
-
 class User():
 
     def __init__(self,username,email,password):
@@ -118,10 +117,11 @@ class User():
 class Product():
 
     # product class constructor
-    def __init__(self,name,price,quantity,user_id):
+    def __init__(self,name,price,quantity,min_stock,user_id):
         self.name = name
         self.price = price
         self.quantity = quantity
+        self.min_stock = min_stock 
         self.user_id = user_id
 
 # create a product by admin
@@ -131,9 +131,9 @@ class Product():
         try:
             cur.execute(
                 """
-                INSERT INTO products(name, price, quantity,created_by)
-                VALUES(%s,%s,%s,%s)""",
-                (self.name, self.price,self.quantity,self.user_id))
+                INSERT INTO products(name, price, quantity,min_stock,created_by)
+                VALUES(%s,%s,%s,%s,%s)""",
+                (self.name, self.price,self.quantity,self.min_stock,self.user_id))
 
             conn.commit()
             
@@ -145,11 +145,33 @@ class Product():
             print(e)
             return ("ran into trouble creating your product ")
 
+
+# checks if product with the id exists
+    @staticmethod
+    def find_by_id(product_id):
+
+        cur.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
+        rows = cur.fetchone()
+        if rows :
+            return True
+               
+        return False
+
+
 # checks if product name exists
     @staticmethod
     def find_product_by_name(name):
 
         cur.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
+        rows = cur.fetchone()
+               
+        return rows
+
+# return product quantity in stock
+    @staticmethod
+    def find_stock(product_id):
+
+        cur.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
         rows = cur.fetchone()
                
         return rows
@@ -187,14 +209,7 @@ class Product():
             return {'message': 'Something went wrong'}, 500
 
 
-# checks if product name exists
-    @staticmethod
-    def find_product_by_name(name):
 
-        cur.execute("""SELECT * FROM products WHERE name='{}' """.format(name))
-        rows = cur.fetchone()
-               
-        return rows
 
   #  modify an entry
     @staticmethod
@@ -207,6 +222,23 @@ class Product():
             conn.commit()
         
             return 'product edited'
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
+  #  modify product quantity after a sale is made
+    @staticmethod
+    def updated_product(product_id,quantity):
+  
+        try:
+      
+            cur.execute("""UPDATE products  SET quantity='{}'  WHERE id='{}' """.format(quantity,product_id))
+            # db.cursor.commit()
+            conn.commit()
+        
+            return 'product price edited'
 
         
         except Exception as e:
@@ -250,9 +282,10 @@ class Product():
 class Sale():
 
 # product class constructor
-    def __init__(self,description,items,total,user_id):
+    def __init__(self,description,product_id,quantity,total,user_id):
         self.description = description
-        self.items = items
+        self.product_id = product_id
+        self.quantity = quantity
         self.total = total
         self.user_id = user_id
 
@@ -261,9 +294,9 @@ class Sale():
         try:
             cur.execute(
                 """
-                INSERT INTO sales(description, items, total,created_by)
-                VALUES(%s,%s,%s,%s)""",
-            (self.description, self.items,self.total,self.user_id))
+                INSERT INTO sales(description, product_id,quantity,total,created_by)
+                VALUES(%s,%s,%s,%s,%s)""",
+            (self.description, self.product_id,self.quantity,self.total,self.user_id))
             conn.commit()
 
             
