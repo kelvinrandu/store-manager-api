@@ -13,13 +13,14 @@ store_manager = Blueprint('api', __name__)
 
 app = Flask(__name__)
 api = Api(store_manager)
+
 def admin_only(f):
     ''' Deny access if the user is not admin '''
     @wraps(f)
     def decorator_func(*args,**kwargs):
         user_name = get_jwt_identity()
-        user = User.find_by_username(user_name)     
-        if user['role'] != 1:
+        user = User.find_by_username(user_name)
+        if  user['role'] == 0 :
             return {'message': 'unauthorized access, Invalid token'}, 401
         return f(*args, **kwargs)
     return decorator_func
@@ -31,8 +32,9 @@ class UserRegistration(Resource):
     parser.add_argument('username', required=True, help='Username cannot be blank', type=str)
     parser.add_argument('email', required=True, help='Email cannot be blank')
     parser.add_argument('password', required=True, help='Password cannot be blank', type=str)
-    @admin_only
+    
     @jwt_required
+    @admin_only
     def post(self):
 
         args = UserRegistration.parser.parse_args()
@@ -81,7 +83,7 @@ class UserRegistration(Resource):
             result = new_user.create_store_attendant()
 
             return {
-                'message': 'Store attendant was created succesfully',
+                'message': 'Store attendant has been created succesfully',
                 'status': 'ok',
                 'username ': username
                 }, 201
@@ -114,7 +116,7 @@ class UserLogin(Resource):
             access_token = create_access_token(identity =  current_user['username'],expires_delta=datetime.timedelta(hours=1))
 
             return {
-                'message': 'User was logged in succesfully',
+                'message': 'User has logged in succesfully',
                 'status':'ok',
                 'access_token': access_token,
                 'username': current_user['username']
@@ -134,6 +136,7 @@ class PostProducts(Resource):
         parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
 
         @jwt_required
+        @admin_only
         def post(self):
 
             args = PostProducts.parser.parse_args()
@@ -206,6 +209,7 @@ class EachProduct(Resource):
 class DeleteProduct(Resource):
 
     @jwt_required
+    @admin_only
     def delete(self, product_id):
 
         user_name = get_jwt_identity()
@@ -232,8 +236,9 @@ class ModifyProduct(Resource):
     parser.add_argument('quantity', required=True, help='quantity cannot be blank', type=int)
     parser.add_argument('min_stock', required=True, help='minimum stock cannot be blank', type=int)
     parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
-
+    
     @jwt_required
+    @admin_only
     def put(self, product_id):
 
         args = ModifyProduct.parser.parse_args()
@@ -332,8 +337,9 @@ class PostSale(Resource):
                 return {'message': 'Something went wrong'}, 500
 
 class GetSales(Resource):
-
+        
         @jwt_required
+        @admin_only
         def get(self):
  
             if Sale.get_sales() :
@@ -356,8 +362,9 @@ class GetMySales(Resource):
             return jsonify({'message':'not made sales yet'})              
 
 class EachSale(Resource):
-
+        
         @jwt_required
+        @admin_only
         def get(self,sale_id):
             rows=  Sale.get_each_sale(sale_id)
             if rows:
@@ -370,8 +377,8 @@ class PostCategory(Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
-
         @jwt_required
+        @admin_only
         def post(self):
 
             args =  PostCategory.parser.parse_args()
@@ -427,9 +434,9 @@ class GetCategory(Resource):
 class ModifyCategory(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('name', required=True, help='body cannot be blank', type=str)
-
-
+   
     @jwt_required
+    @admin_only
     def put(self,category_id):
 
         args =  ModifyCategory.parser.parse_args()
@@ -469,8 +476,9 @@ class ModifyCategory(Resource):
 
 class DeleteCategory(Resource):
 
-
+  
     @jwt_required
+    @admin_only
     def delete(self,category_id):
 
         user_name = get_jwt_identity()
@@ -500,6 +508,7 @@ class DeleteCategory(Resource):
 class MakeAdmin(Resource):
 
     @jwt_required
+    @admin_only
     def post(self,attendant_id):
         user_name = get_jwt_identity()
         user = User.find_by_username(user_name)
@@ -531,6 +540,7 @@ class AddCategory(Resource):
     parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
 
     @jwt_required
+    @admin_only
     def post(self,product_id):
         args =  AddCategory.parser.parse_args()      
         category_id = args.get('category_id')
@@ -566,13 +576,13 @@ class TokenRefresh(Resource):
         return {'access_token': access_token}
 
 class SecretResource(Resource):
-    @admin_only
+
     @jwt_required
+    @admin_only
     def get(self):
         user_name = get_jwt_identity()
         user = User.find_by_username(user_name)
-        
-        if user['role'] != 1:
+        if user["role"] == 0 :
             return {'message': 'unauthorized access, Invalid token'}, 401
         return {'message': 'you are authorized'}, 200
 
