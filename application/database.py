@@ -1,46 +1,21 @@
 import os
 from psycopg2 import connect, extras
-# from instance.config import APP_CONFIG
-
 
 environment = os.environ['APP_SETTINGS']
 if environment == 'testing':
     conn = connect(os.getenv('DATABASE_URL'))
     cur = conn.cursor()
     print('connect to test database')
-    print(conn)
+    
 if environment == 'development':
     conn = connect(os.getenv('DATABASE_URL'))
     cur = conn.cursor()
     print('connect to develop database')
-    print(conn)
-# DATABASE_URL = APP_CONFIG[environment].DATABASE_URL
-# conn = connect(DATABASE_URL)
 
-
-# config_name = os.getenv('FLASK_ENV')
-# development_url = os.getenv('Dev_URL')
-# testing_url = os.getenv('Test_URL')
-# production_url = os.getenv('DATABASE_URL')
-# print(config_name)
-
-    # conn = connect(os.getenv('DATABASE_URL'))
-    # cur = conn.cursor()
-    # print("Database is  connected.")
-
-# if config_name == 'development':
-#     conn = connect(os.getenv('DATABASE_URL'))
-#     print("Database is connected as .")
-
-# if config_name == 'production':
-#     conn = connect(os.getenv('DATABASE_URL'))
-#     print("Database is  connected as.")
-# if config_name == 'testing':
-#     conn = connect(os.getenv('DATABASE_URL'))
-#     print("Database is  connected as.")
-
-
-
+if environment == 'production':
+    conn = connect(os.getenv('DATABASE_URL'))
+    cur = conn.cursor()
+    print('connect to develop database')    
 
 
 
@@ -76,8 +51,7 @@ def create_tables():
         cur.execute(products)
         cur.execute(sales)
         cur.execute(tokens)
-
-         
+        
     except Exception as ex:
         print('error in migration', ex)
 
