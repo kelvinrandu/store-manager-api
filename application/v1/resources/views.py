@@ -1,55 +1,51 @@
+import re
+import datetime
 from flask_restful import Resource,reqparse,Api
 from flask import Flask,jsonify,request, make_response,Blueprint
-import re
 from application.v1.resources.models import User
 from application.v1.resources.models import Sale
 from application.v1.resources.models import Product
 from application.v1.resources.models import Category
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
+from functools import wraps
 
-
-
-
-store_manager = Blueprint('api',__name__)
+store_manager = Blueprint('api', __name__)
 
 app = Flask(__name__)
 api = Api(store_manager)
-
-
+def admin_only(f):
+    ''' Deny access if the user is not admin '''
+    @wraps(f)
+    def decorator_func(*args,**kwargs):
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)     
+        if user['role'] != 1:
+            return {'message': 'unauthorized access, Invalid token'}, 401
+        return f(*args, **kwargs)
+    return decorator_func
 
 
 class UserRegistration(Resource):
-    
 
     parser = reqparse.RequestParser()
     parser.add_argument('username', required=True, help='Username cannot be blank', type=str)
     parser.add_argument('email', required=True, help='Email cannot be blank')
     parser.add_argument('password', required=True, help='Password cannot be blank', type=str)
-    parser.add_argument('user_id', required=True, help='user_id cannot be blank', type=int)
-  
-
-    # handle create user logic
-
+    @admin_only
+    @jwt_required
     def post(self):
-        # claims = get_jwt_claims()
-        # admin="admin"
-        # if claims["role"] != 1 :
-        #     return make_response(jsonify({'message': 'you are not authorized to perform this function'}),400)
 
-        # remove all whitespaces from input
-        args =  UserRegistration.parser.parse_args()
+        args = UserRegistration.parser.parse_args()
         raw_password = args.get('password')
-        user_id = args.get('user_id')
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        user_id = user['id']
         username = args.get('username').strip()
         email = args.get('email')
-
-
-
-        # validate user input
+        
         email_format = re.compile(
         r"(^[a-zA-Z0-9_.-]+@[a-zA-Z-]+\.[.a-zA-Z-]+$)")
         username_format = re.compile(r"(^[A-Za-z0-9-]+$)")
-
 
         if not email:
             return make_response(jsonify({'message': 'email can not be empty'}),400)
@@ -60,74 +56,49 @@ class UserRegistration(Resource):
         if not username:
             return make_response(jsonify({'message': 'username cannot be empty'}),400)
         if len(raw_password) < 6:
-            return make_response(jsonify({'message' : 'Password should be atleast 6 characters'}), 400)
+            return make_response(jsonify({'message': 'Password should be atleast 6 characters'}), 400)
         if not (re.match(email_format, email)):
-            return make_response(jsonify({'message' : 'Invalid email'}), 400)
+            return make_response(jsonify({'message': 'Invalid email'}), 400)
         if not (re.match(username_format, username)):
-            return make_response(jsonify({'message' : 'Please input only characters and numbers'}), 400)
+            return make_response(jsonify({'message': 'Please input only characters and numbers'}), 400)
 
+        current_username = User.find_by_username(username)
+        if current_username:
+            return {'message': 'username already exist'}, 400
 
-# check if authorized
-        user = User.is_admin(user_id)
-        if user != True:
-            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
-     
-        
-        # # # # upon successful validation check if user by the username exists 
-        this_user = User.find_by_username(username)
-        if this_user:
-            return {'message': 'username already exist'},400
-
-         # # # upon successful validation check if user by the email exists 
         this_user = User.find_by_email(email)
         if this_user:
-            return {'message': 'email already exist'},400 
+            return {'message': 'email already exist'}, 400 
   
-
-        # send validated user input to user model
         new_user = User(
-            username=username ,
+            username=username,
             email=email,
-            password = User.generate_hash(raw_password)
+            password=User.generate_hash(raw_password)
      
         )
 
-
-        # attempt creating a new user in user model
         try:
             result = new_user.create_store_attendant()
-            access_token = create_access_token(identity = username)
-            refresh_token = create_refresh_token(identity = username)
+
             return {
                 'message': 'Store attendant was created succesfully',
                 'status': 'ok',
-                'access_token': access_token,
-                'refresh_token': refresh_token,
                 'username ': username
-                },201
+                }, 201
 
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
- 
-
- 
-
-
-# handle user login
 class UserLogin(Resource):
     
-    # validate user input
     parser = reqparse.RequestParser()
     parser.add_argument('email', required=True, help='Email cannot be blank')
     parser.add_argument('password', required=True, help='Password cannot be blank')
 
-
     def post(self):
 
-        # check for white spaces
-        args =  UserLogin.parser.parse_args()
+        args = UserLogin.parser.parse_args()
         password = args.get('password').strip()
         email = args.get('email').strip()
         if not email:
@@ -135,21 +106,17 @@ class UserLogin(Resource):
         if not password:
             return {'message': 'password cannot be empty'},400
 
-        # upon successful validation check if user by the email exists in database and return response if not
         current_user = User.find_by_email(email)
         if current_user is None:
             return {'message': 'email {} doesn\'t exist'.format(email)},400
 
-        
-        # compare user's password and the hashed password in database
         if User.verify_hash(password, current_user['password']):
-            access_token = create_access_token(identity =  current_user['username'])
-            refresh_token = create_refresh_token(identity = current_user['username'])
+            access_token = create_access_token(identity =  current_user['username'],expires_delta=datetime.timedelta(hours=1))
+
             return {
                 'message': 'User was logged in succesfully',
                 'status':'ok',
                 'access_token': access_token,
-                'refresh_token': refresh_token,
                 'username': current_user['username']
 
                 },200
@@ -157,34 +124,28 @@ class UserLogin(Resource):
             return {'message': 'Wrong credentials'},400
 
 
-
-
-
-# handles posting of product by admin
 class PostProducts(Resource):
        
-
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
         parser.add_argument('price', required=True, help=' Product price cannot be blank',type=int)
         parser.add_argument('quantity', required=True, help='Product quantity cannot be blank', type=int)
-        parser.add_argument('user_id', required=True, help='User id quantity cannot be blank', type=int)
         parser.add_argument('min_stock', required=True, help='Minimum stock quantity cannot be blank', type=int)
+        parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
 
         @jwt_required
         def post(self):
 
- # validate input
-
-            args =  PostProducts.parser.parse_args()
+            args = PostProducts.parser.parse_args()
             name = args.get('name').strip()
             price = args.get('price')
-            user_id = args.get('user_id')
+            category_id = args.get('category_id')
+            user_name = get_jwt_identity()
+            user = User.find_by_username(user_name)
+            user_id = user['id']
             quantity = args.get('quantity')
             min_stock = args.get('min_stock')
 
-
-# error response
             if not name:
                 return make_response(jsonify({'message': 'product name can not be empty'}),400)
             if not price:
@@ -196,191 +157,160 @@ class PostProducts(Resource):
             if not min_stock:
                 return make_response(jsonify({'message': 'minimum stock  cannot be empty'}),400)
 
-# check if authorized
-            user = User.is_admin(user_id)
-            if user != True:
-                return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
-
-
-# checks if product by the name exists
             this_product = Product.find_product_by_name(name)
             if this_product:
-                return {'message': 'product already exist'},400 
+                return {'message': 'product  by this name already exist'}, 400 
 
             new_product = Product(
-                name=name ,
+                name=name,
                 price=price,
-                quantity = quantity,
-                min_stock = min_stock,
-                user_id = user_id
+                quantity=quantity,
+                min_stock=min_stock,
+                user_id=user_id,
+                category_id=category_id
      
             )
-
 
             try:
 
                 products = new_product.create_new_product()
 
                 return {
-                'message': 'product created successfully','status':'ok'
+                    'message': 'product created successfully', 'status': 'ok'
 
-                 },201
+                 }, 201
 
             except Exception as e:
                 print(e)
                 return {'message': 'Something went wrong'}, 500
 
 
-
-# fetch all product
 class GetProducts(Resource):
         @jwt_required
         def get(self):
             if Product.get_products() :
-                rows=  Product.get_products()
-                return jsonify({'message': 'product retrieved succesfully','status':'ok','products': rows})
+                rows= Product.get_products()
+                return jsonify({'message': 'product retrieved succesfully','status':'ok','products': rows[0]})
             return jsonify({'message':'no products yet'})
 
 
-
-# fetch a specific product
 class EachProduct(Resource):
         @jwt_required
-        def get(self,product_id):
-            rows=  Product.get_each_product(product_id)
-            if rows:
-   
-                return jsonify({'message': 'product retrieved succesfully','status':'ok','products': rows},200)
-            else:
-                return jsonify({'message':'not found' }),404
+        def get(self, product_id):
+            this_product = Product.find_by_id(product_id)
+            if this_product != True:
+                return make_response(jsonify({'message': 'no product by the provided id exists'}), 400)
+            rows = Product.get_each_product(product_id)
+            return jsonify({'message': 'product retrieved succesfully', 'status':'ok','products': rows[0]},200)
 
-# delete  specific product
 class DeleteProduct(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('user_id', required=True, help='title cannot be blank', type=int)
- 
 
     @jwt_required
-    def delete(self,product_id):
+    def delete(self, product_id):
 
-        args =  DeleteProduct.parser.parse_args()
-        user_id = args.get('user_id')
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        user_id = user['id']
 
-# check if authorized
-        user = User.is_admin(user_id)
-        if user != True:
-            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
-
-        # attempt delete product
         try:
-            Product.delete_product(product_id,user_id)
+            Product.delete_product(product_id, user_id)
 
             return {
                 'message': 'Product  was successfuly deleted'
 
-                },200
+                }, 200
 
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
 
-# modify an  entry
 class ModifyProduct(Resource):
 
     parser = reqparse.RequestParser()
-    parser.add_argument('user_id', required=True, help='title cannot be blank', type=int)
-    parser.add_argument('name', required=True, help='body cannot be blank', type=str)
-
+    parser.add_argument('name', required=True, help='name cannot be blank', type=str)
+    parser.add_argument('quantity', required=True, help='quantity cannot be blank', type=int)
+    parser.add_argument('min_stock', required=True, help='minimum stock cannot be blank', type=int)
+    parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
 
     @jwt_required
-    def put(self,product_id):
+    def put(self, product_id):
 
-        args =  ModifyProduct.parser.parse_args()
-        user_id = args.get('user_id')
+        args = ModifyProduct.parser.parse_args()
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        user_id = user['id']
         name = args.get('name').strip()
+        quantity = args.get('quantity')
+        min_stock = args.get('min_stock')
+        category_id = args.get('category_id')
 
-# check if authorized
-        user = User.is_admin(user_id)
-        if user != True:
-            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401) 
+        this_product = Product.find_product_by_name(name)
+        if this_product:
+            return {'message': 'product  by this name already exist'}, 400 
         
-
-        # attempt modify product
         try:
-            Product.edit_product(product_id,name,user_id)
+            Product.edit_product(product_id, name, quantity, min_stock, category_id, user_id)
+            product = Product.find_product_by_name(name)
+            if product == False:
+                return {'message': 'could not fetch product'}, 400 
 
-            return {
-                'message': 'Product  was successfuly edited'
 
-                }
+            return jsonify({
+                'message': 'Product  was successfuly edited',
+                'product': product
+
+                })
 
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
 
-
-# handles posting of a sale by store attendant
-
 class PostSale(Resource):
         
-        # validate sale input
-
         parser = reqparse.RequestParser()
-        parser.add_argument('description', required=True, help='Sale description  cannot be blank', type=str)
-        parser.add_argument('user_id', required=True, help='User_id cannot be blank', type=int)
         parser.add_argument('product_id', required=True, help='User_id cannot be blank', type=int)
         parser.add_argument('quantity', required=True, help='User_id cannot be blank', type=int)
 
         @jwt_required
         def post(self):
 
-            args =  PostSale.parser.parse_args()
-            description = args.get('description').strip()
+            args = PostSale.parser.parse_args()
             product_id = args.get('product_id')
-            user_id= args.get('user_id')
+            user_name = get_jwt_identity()
+            user = User.find_by_username(user_name)
+            user_id = user['id']
             quantity= args.get('quantity')
-            total = 400
- 
- # validation of user input
-            if not description:
-                return make_response(jsonify({'message': 'Sale description  can not be empty'}),400)
-            if not product_id:
-                return make_response(jsonify({'message': 'product id  can not be empty'}),400)
-            if not user_id:
-                return make_response(jsonify({'message': 'user_id  can not be empty'}),400)
-            if not quantity:
-                return make_response(jsonify({'message': 'quantity of product  can not be empty'}),400)
+            total = 0
 
-# check if product exists
+            if not product_id:
+                return make_response(jsonify({'message': 'product id  can not be empty'}), 400)
+            if not user_id:
+                return make_response(jsonify({'message': 'user_id  can not be empty'}), 400)
+            if not quantity:
+                return make_response(jsonify({'message': 'quantity of product  can not be empty'}), 400)
+
             this_product = Product.find_by_id(product_id)
             if this_product != True:
-                return make_response(jsonify({'message': 'no product by the provided id exists'}),400)
+                return make_response(jsonify({'message': 'no product by the provided id exists'}), 400)
 
-# checks if user_id exists
             this_user = User.find_by_id(user_id)
             if this_user != True:
-                return make_response(jsonify({'message': 'no user by the provided id exists'}),400)
+                return make_response(jsonify({'message': 'no user by the provided id exists'}), 400)
 
-
-# checks if quantity does not exceed the quantity in stock and after sale  minimum stock is maintaned
             stock = Product.find_stock(user_id)
             min_stock = stock['min_stock']
             stock_quantity = stock['quantity']
             gap = stock_quantity - min_stock
-            
-            
-
+                    
             if quantity > gap :
                  return {'message': 'only a maximum of  {}  is allowed '.format(gap)},400
 
             total = stock['price'] * quantity
             remaining_quantity = stock_quantity - quantity
-
-            
+           
             new_sale = Sale(
-                description=description ,
                 product_id=product_id,
                 quantity=quantity,
                 total=total,
@@ -388,24 +318,19 @@ class PostSale(Resource):
      
             )
 
-
             try:
-
                 sales = new_sale.create_new_sale()
                 Product.updated_product(product_id,remaining_quantity)
 
                 return {
                 'message': 'sale created successfully','status':'ok'
 
-                 },201
+                 }, 201
 
             except Exception as e:
                 print(e)
                 return {'message': 'Something went wrong'}, 500
 
-
-
-# fetch all product
 class GetSales(Resource):
 
         @jwt_required
@@ -415,12 +340,21 @@ class GetSales(Resource):
                 rows=  Sale.get_sales()
                 return jsonify({'message': 'sales retrieved succesfully','status':'ok','sale':rows})
             return jsonify({'message':'no sales yet'})
-                
 
 
+class GetMySales(Resource):
 
+        @jwt_required
+        def get(self):
+            user_name = get_jwt_identity()
+            user = User.find_by_username(user_name)
+            user_id = user['id']
+ 
+            if Sale.get_my_sales(user_id) :
+                rows=  Sale.get_my_sales(user_id)
+                return jsonify({'message': 'my sales retrieved succesfully','status':'ok','sale':rows[0]})
+            return jsonify({'message':'not made sales yet'})              
 
-# fetch each sale
 class EachSale(Resource):
 
         @jwt_required
@@ -432,36 +366,28 @@ class EachSale(Resource):
                 return jsonify({'message':'not found' }),404
 
 
-#  admin create  category
 class PostCategory(Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
-        parser.add_argument('user_id', required=True, help='User_id quantity cannot be blank', type=int)
 
         @jwt_required
         def post(self):
 
- # validate input
-
             args =  PostCategory.parser.parse_args()
             name = args.get('name').strip()
-            user_id = args.get('user_id')
+            user_name = get_jwt_identity()
+            user = User.find_by_username(user_name)
+            user_id = user['id']
+            
 
 
-
-# error response
             if not name:
                 return make_response(jsonify({'message': 'category name can not be empty'}),400)
 
             if not user_id:
                 return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
 
-# check if user is authorized
-            user = User.is_admin(user_id)
-            if user != True:
-                return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)               
-# find if category exists
             this_category = Category.find_category_by_name(name)
             if this_category:
                 return {'message': 'product already exist'},400 
@@ -471,11 +397,12 @@ class PostCategory(Resource):
                 user_id = user_id
      
             )
+            return   new_category.create_new_category()
 
 
             try:
 
-                category = new_category.create_new_category()
+                new_category.create_new_category()
 
                 return {
                 'message': 'category created successfully','status':'ok'
@@ -487,21 +414,18 @@ class PostCategory(Resource):
                 return {'message': 'Something went wrong'}, 500
 
 
-#  adminpost category
 class GetCategory(Resource):
     @jwt_required
     def get(self):
  
         if Category.get_categories() :
             rows=  Category.get_categories()
-            return jsonify({'message': 'categories retrieved succesfully','status':'ok','sale':rows})
+            return jsonify({'message': 'categories retrieved succesfully','status':'ok','categories':rows})
         return jsonify({'message':'no categories added yet'})
 
 
-#  admin modify category
 class ModifyCategory(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('user_id', required=True, help='title cannot be blank', type=int)
     parser.add_argument('name', required=True, help='body cannot be blank', type=str)
 
 
@@ -509,55 +433,57 @@ class ModifyCategory(Resource):
     def put(self,category_id):
 
         args =  ModifyCategory.parser.parse_args()
-        user_id = args.get('user_id')
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        user_id = user['id']
         name = args.get('name').strip()
 
-# error response
         if not name:
             return make_response(jsonify({'message': 'category name can not be empty'}),400)
 
         if not user_id:
             return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
 
-# check if authorized
-        user = User.is_admin(user_id)
-        if user != True:
-            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
+        this_category= Category.get_category_by_id(category_id)
+        if this_category == False:
+            return make_response(jsonify({'message': 'category you are trying to edit does not exist'}),400)
 
-        # attempt modify category
+        this_name= Category.find_category_by_name(name)
+        if this_name :
+            return make_response(jsonify({'message': 'category name already exists'}),400)
+
         try:
             Category.edit_category(category_id,name,user_id)
+            category= Category.find_category_by_name(name)
 
-            return {
-                'message': 'Category  was successfuly edited'
+            return jsonify({
+                'message': 'Category  was successfuly edited',
+                'category':category
 
-                }
+                })
 
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-#  admin delete category
+
 class DeleteCategory(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('user_id', required=True, help='title cannot be blank', type=int)
- 
+
 
     @jwt_required
     def delete(self,category_id):
 
-        args =  DeleteProduct.parser.parse_args()
-        user_id = args.get('user_id')
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        user_id = user['id']
 
         if not user_id:
             return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
 
-# check if authorized
-        user = User.is_admin(user_id)
-        if user != True:
-            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401)
+        this_category= Category.get_category_by_id(category_id)
+        if this_category == False:
+            return make_response(jsonify({'message': 'category you are trying to delete does not exist'}),400)
 
-        # attempt delete category
         try:
             Category.delete_category(category_id,user_id)
 
@@ -571,26 +497,22 @@ class DeleteCategory(Resource):
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-# make store attendant admin
 class MakeAdmin(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('admin_id', required=True, help='admin id cannot be blank', type=int)
 
     @jwt_required
     def post(self,attendant_id):
-        args =  MakeAdmin.parser.parse_args()
-        user_id = args.get('admin_id')
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        user_id = user['id']
            
 
         if not user_id:
-            return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)  
+            return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)
 
-# check if authorized
-        user = User.is_admin(user_id)
-        if user != True:
-            return make_response(jsonify({'message' : 'You are not authorized to perform this function'}), 401) 
+        attendant = User.find_by_id(attendant_id)  
+        if attendant != True:
+            return make_response(jsonify({'message': 'attendant  cannot be found'}),400)
 
- # attempt to make store attendant admin
         try:
             User.make_admin(attendant_id)
 
@@ -604,17 +526,17 @@ class MakeAdmin(Resource):
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-# add category to product
 class AddCategory(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('admin_id', required=True, help='admin id cannot be blank', type=int)
     parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
 
     @jwt_required
     def post(self,product_id):
-        args =  AddCategory.parser.parse_args()
-        admin_id = args.get('admin_id')
+        args =  AddCategory.parser.parse_args()      
         category_id = args.get('category_id')
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        admin_id = user['id']
 
         if not admin_id:
             return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)   
@@ -622,8 +544,6 @@ class AddCategory(Resource):
             return make_response(jsonify({'message': 'category id  cannot be empty'}),400) 
 
         
-
-#  attempt to add category to product
         try:
             Product.add_category_to_product(product_id,category_id,admin_id)
 
@@ -638,8 +558,6 @@ class AddCategory(Resource):
             return {'message': 'Something went wrong'}, 500
 
 
-
-
 class TokenRefresh(Resource):
     @jwt_refresh_token_required
     def post(self):
@@ -647,13 +565,16 @@ class TokenRefresh(Resource):
         access_token = create_access_token(identity = current_user)
         return {'access_token': access_token}
 
-# test jwt
 class SecretResource(Resource):
+    @admin_only
     @jwt_required
     def get(self):
-        return {
-            'answer': 42
-        }
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        
+        if user['role'] != 1:
+            return {'message': 'unauthorized access, Invalid token'}, 401
+        return {'message': 'you are authorized'}, 200
 
 class UserLogoutAccess(Resource):
     @jwt_required
@@ -680,15 +601,17 @@ class UserLogoutRefresh(Resource):
 
 class CheckStatus(Resource):
     def post(self,user_id):
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        user_id = user['id']
         user = User.is_admin(user_id)
         return jsonify({'message': 'status check','status':'ok','sale':user})
 
-# routes
+
 api.add_resource(UserRegistration, '/api/v1/auth/signup/')
 api.add_resource(UserLogin, '/api/v1/auth/login/')
 api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
 api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh/')
-# api.add_resource(TokenRefresh, '/api/v1/token/refresh/')
 api.add_resource(SecretResource, '/api/v1/secret/')
 api.add_resource(PostProducts, '/api/v1/products/')
 api.add_resource(GetProducts, '/api/v1/products/')
@@ -697,6 +620,7 @@ api.add_resource(DeleteProduct, '/api/v1/products/<int:product_id>/')
 api.add_resource(ModifyProduct, '/api/v1/products/<int:product_id>/')
 api.add_resource(PostSale, '/api/v1/sales/')
 api.add_resource(GetSales, '/api/v1/sales/')
+api.add_resource(GetMySales, '/api/v1/my/sales/')
 api.add_resource(EachSale, '/api/v1/sale/<int:sale_id>/')
 api.add_resource(PostCategory, '/api/v1/categories/')
 api.add_resource(GetCategory, '/api/v1/categories/')

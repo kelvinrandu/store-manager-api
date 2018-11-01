@@ -1,6 +1,6 @@
-from flask_restful import Resource,reqparse
+from flask_restful import Resource, reqparse
 from psycopg2 import connect, extras
-from flask import Flask,jsonify,request, make_response
+from flask import Flask, jsonify, request, make_response
 from passlib.hash import pbkdf2_sha256 as sha256
 from psycopg2 import sql
 from psycopg2 import connect
@@ -14,14 +14,12 @@ cur = conn.cursor(cursor_factory=extras.RealDictCursor)
 
 class User():
 
-    def __init__(self,username,email,password):
+    def __init__(self, username, email, password):
         self.username = username
         self.email = email
         self.password = password 
         self.role = 0
-
-
-  
+ 
     def create_store_attendant(self):
        
         try:
@@ -29,7 +27,7 @@ class User():
                 """
                 INSERT INTO users(username, email, password,role)
                 VALUES(%s,%s,%s,%s)""",
-                (self.username, self.email,self.password,self.role))
+                (self.username, self.email, self.password, self.role))
 
             conn.commit()
 
@@ -63,9 +61,9 @@ class User():
 
 # checks if user is admin
     @staticmethod
-    def is_admin(user_id):
+    def is_admin(username):
 
-        cur.execute("""SELECT * FROM users WHERE id='{}' """.format(user_id))
+        cur.execute("""SELECT * FROM users WHERE username='{}' """.format(username))
         rows = cur.fetchone()
         if rows :
             if rows['role'] == 1:
@@ -77,11 +75,11 @@ class User():
 # checks if username exists
     @staticmethod
     def find_by_username(username):
-
-        cur.execute("""SELECT * FROM users WHERE username='{}' """.format(username))
-        rows = cur.fetchone()
+      
+            cur.execute("""SELECT * FROM users WHERE username='{}' """.format(username))
+            rows = cur.fetchone()
+            return rows
                
-        return rows
 
 
     # make admin
@@ -117,11 +115,12 @@ class User():
 class Product():
 
     # product class constructor
-    def __init__(self,name,price,quantity,min_stock,user_id):
+    def __init__(self,name,price,quantity,min_stock,category_id,user_id):
         self.name = name
         self.price = price
         self.quantity = quantity
         self.min_stock = min_stock 
+        self.category_id = category_id
         self.user_id = user_id
 
 # create a product by admin
@@ -131,9 +130,9 @@ class Product():
         try:
             cur.execute(
                 """
-                INSERT INTO products(name, price, quantity,min_stock,created_by)
-                VALUES(%s,%s,%s,%s,%s)""",
-                (self.name, self.price,self.quantity,self.min_stock,self.user_id))
+                INSERT INTO products(name, price, quantity,min_stock,category_id,created_by)
+                VALUES(%s,%s,%s,%s,%s,%s)""",
+                (self.name, self.price,self.quantity,self.min_stock,self.category_id,self.user_id))
 
             conn.commit()
             
@@ -200,6 +199,8 @@ class Product():
             cur.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
             # db.cursor.commit()
             rows = cur.fetchall()
+            if not rows :
+                return False
         
             return rows
 
@@ -213,11 +214,11 @@ class Product():
 
   #  modify an entry
     @staticmethod
-    def edit_product(product_id,name,user_id):
+    def edit_product(product_id,name,quantity,min_stock,category_id,user_id):
   
         try:
       
-            cur.execute("""UPDATE products  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,product_id))
+            cur.execute("""UPDATE products  SET name='{}', quantity='{}',  min_stock='{}', category_id='{}', created_by='{}' WHERE id='{}' """.format(name,quantity,min_stock,category_id,user_id,product_id))
             # db.cursor.commit()
             conn.commit()
         
@@ -268,7 +269,7 @@ class Product():
   
         try:
       
-            cur.execute("""UPDATE products  SET category='{}'  WHERE id='{}' """.format(category_id,product_id))
+            cur.execute("""UPDATE products  SET category_id='{}'  WHERE id='{}' """.format(category_id,product_id))
             # db.cursor.commit()
             conn.commit()
         
@@ -282,8 +283,7 @@ class Product():
 class Sale():
 
 # product class constructor
-    def __init__(self,description,product_id,quantity,total,user_id):
-        self.description = description
+    def __init__(self,product_id,quantity,total,user_id):
         self.product_id = product_id
         self.quantity = quantity
         self.total = total
@@ -294,9 +294,9 @@ class Sale():
         try:
             cur.execute(
                 """
-                INSERT INTO sales(description, product_id,quantity,total,created_by)
-                VALUES(%s,%s,%s,%s,%s)""",
-            (self.description, self.product_id,self.quantity,self.total,self.user_id))
+                INSERT INTO sales(product_id,quantity,total,created_by)
+                VALUES(%s,%s,%s,%s)""",
+            (self.product_id,self.quantity,self.total,self.user_id))
             conn.commit()
 
             
@@ -315,6 +315,20 @@ class Sale():
         try:
       
             cur.execute("""SELECT * FROM sales  """)
+            # db.cursor.commit()
+            rows = cur.fetchall()
+
+            return rows
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
+
+# fetch all sales
+    @staticmethod
+    def get_my_sales(user_id):
+        try:
+            cur.execute("""SELECT * FROM sales WHERE created_by='{}'  """.format(user_id))
             # db.cursor.commit()
             rows = cur.fetchall()
 
@@ -376,6 +390,23 @@ class Category():
         rows = cur.fetchone()
                
         return rows
+
+    @staticmethod
+    def get_category_by_id(category_id):
+        try:
+      
+            cur.execute("""SELECT * FROM categories WHERE id='{}' """.format(category_id))
+            # db.cursor.commit()
+            rows = cur.fetchall()
+            if not rows :
+                return False
+        
+            return rows
+
+        
+        except Exception as e:
+            print(e)
+            return {'message': 'Something went wrong'}, 500
 
 # fetch all categoies by admin
     @staticmethod  
