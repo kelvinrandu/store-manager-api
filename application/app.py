@@ -2,6 +2,7 @@ from flask import Flask
 from application.v1.resources.views import store_manager
 from instance.config import APP_CONFIG
 from flask_jwt_extended import JWTManager
+from application.database import conn, create_tables
 
 
 
@@ -13,17 +14,17 @@ def create_app(config_name):
     
 
     app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
+    app.config['JWT_BLACKLIST_ENABLED'] = True
+    app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     jwt = JWTManager(app)
 
-    # @jwt.user_claims_loader
-    # def add_claims_to_access_token(user):
-    #     '''add role claims to access token'''
-    #     return {'role': user['role']}
+    create_tables()
 
-    # @jwt.user_identity_loader
-    # def user_identity_lookup(user):
-    #     '''set token identity from user_object passed to username'''
-    #     return user["username"]
+    @jwt.token_in_blacklist_loader
+    def check_if_token_in_blacklist(decrypted_token):
+        jti = decrypted_token['jti']
+        return jti in blacklist
+
 
     return app
 
