@@ -325,37 +325,37 @@ class PostSale(Resource):
                 return make_response(jsonify({'message': 'no user by the provided id exists'}), 400)
 
             stock = Product.find_stock(product_id)
-            return stock
-            # min_stock = stock['min_stock']
-            # stock_quantity = stock['quantity']
-            # gap = stock_quantity - min_stock
-                    
-            # if quantity > gap :
-            #      return {'message': 'only a maximum of  {}  is allowed '.format(gap)},400
-
-            # total = stock['price'] * quantity
-            # remaining_quantity = stock_quantity - quantity
            
-            # new_sale = Sale(
-            #     product_id=product_id,
-            #     quantity=quantity,
-            #     total=total,
-            #     user_id = user_id
+            min_stock = stock['min_stock']
+            stock_quantity = stock['quantity']
+            gap = stock_quantity - min_stock
+                    
+            if quantity > gap :
+                 return {'message': 'only a maximum of  {}  is allowed '.format(gap)},400
+
+            total = stock['price'] * quantity
+            remaining_quantity = stock_quantity - quantity
+           
+            new_sale = Sale(
+                product_id=product_id,
+                quantity=quantity,
+                total=total,
+                user_id = user_id
      
-            # )
+            )
 
-            # try:
-            #     sales = new_sale.create_new_sale()
-            #     Product.updated_product(product_id,remaining_quantity)
+            try:
+                sales = new_sale.create_new_sale()
+                Product.updated_product(product_id,remaining_quantity)
 
-            #     return {
-            #     'message': 'sale created successfully','status':'ok'
+                return {
+                'message': 'sale created successfully','status':'ok'
 
-            #      }, 201
+                 }, 201
 
-            # except Exception as e:
-            #     print(e)
-            #     return {'message': 'Something went wrong'}, 500
+            except Exception as e:
+                print(e)
+                return {'message': 'Something went wrong'}, 500
 
 class GetSales(Resource):
         
