@@ -2,7 +2,7 @@ import re
 import datetime
 from flask_restful import Resource,reqparse,Api
 from flask import Flask,jsonify,request, make_response,Blueprint
-from application.v1.resources.models import Product, RevokedTokenModel,Sale,User,Category 
+from application.v1.resources.models import Product,Sale,User,Category 
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from functools import wraps
 
@@ -324,7 +324,7 @@ class PostSale(Resource):
             if this_user != True:
                 return make_response(jsonify({'message': 'no user by the provided id exists'}), 400)
 
-            stock = Product.find_stock(user_id)
+            stock = Product.find_stock(product_id)
             return stock
             # min_stock = stock['min_stock']
             # stock_quantity = stock['quantity']
@@ -372,6 +372,7 @@ class GetSales(Resource):
 class GetMySales(Resource):
 
         @jwt_required
+        @attendant_only
         def get(self):
             user_name = get_jwt_identity()
             user = User.find_by_username(user_name)
@@ -608,25 +609,27 @@ class SecretResource(Resource):
 class UserLogoutAccess(Resource):
     @jwt_required
     def post(self):
-        jti = get_raw_jwt()['jti']
-        try:
-            revoked_token = RevokedTokenModel(jti = jti)
-            revoked_token.add()
-            return {'message': 'Access token has been revoked'}
-        except:
-            return {'message': 'Something went wrong'}, 500
+        # jti = get_raw_jwt()['jti']
+        # try:
+        #     revoked_token = RevokedTokenModel(jti = jti)
+        #     revoked_token.add()
+        #     return {'message': 'Access token has been revoked'}
+        # except:
+        #     return {'message': 'Something went wrong'}, 500
+        pass
 
 
 class UserLogoutRefresh(Resource):
     @jwt_refresh_token_required
     def post(self):
-        jti = get_raw_jwt()['jti']
-        try:
-            revoked_token = RevokedTokenModel(jti = jti)
-            revoked_token.add()
-            return {'message': 'Refresh token has been revoked'}
-        except:
-            return {'message': 'Something went wrong'}, 500
+        # jti = get_raw_jwt()['jti']
+        # try:
+        #     revoked_token = RevokedTokenModel(jti = jti)
+        #     revoked_token.add()
+        #     return {'message': 'Refresh token has been revoked'}
+        # except:
+        #     return {'message': 'Something went wrong'}, 500
+        pass
 
 class CheckStatus(Resource):
     def post(self,user_id):

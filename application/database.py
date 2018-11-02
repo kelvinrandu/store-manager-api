@@ -62,6 +62,9 @@ def create_tables():
         create_admin = """ 
                     INSERT INTO users(username, email, password,role)VALUES('admin','admin@gmail.com', '$pbkdf2-sha256$29000$tBZizDmHkLIWAsA4J4Rwrg$2K6y68IgBSKwnpAplRupNrKZJF9ZhV6w2Jj5eRRTqMw',1);
                     """
+        create_category = """ 
+                    INSERT INTO categories(name, created_by)VALUES('food',1);
+                    """
 
         tokens = """
                  CREATE TABLE IF NOT EXISTS tokens(id VARCHAR(256) PRIMARY KEY,
@@ -69,8 +72,9 @@ def create_tables():
                  """
 
         cur.execute(users)   
-        cur.execute(create_admin)
+        cur.execute(create_admin)   
         cur.execute(categories)
+        cur.execute(create_category)
         cur.execute(products)
         cur.execute(sales)
         cur.execute(tokens)

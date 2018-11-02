@@ -14,16 +14,16 @@ def create_app(config_name):
     
 
     app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
-    app.config['JWT_BLACKLIST_ENABLED'] = True
-    app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
+    # app.config['JWT_BLACKLIST_ENABLED'] = True
+    # app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     jwt = JWTManager(app)
 
     create_tables()
 
-    @jwt.token_in_blacklist_loader
-    def check_if_token_in_blacklist(decrypted_token):
-        jti = decrypted_token['jti']
-        return jti in blacklist
+    # @jwt.token_in_blacklist_loader
+    # def check_if_token_in_blacklist(decrypted_token):
+    #     jti = decrypted_token['jti']
+    #     return jti in blacklist
 
 
     return app

@@ -1,4 +1,6 @@
+[![Build Status](https://travis-ci.org/kelvinrandu/store-manager-api.svg?branch=Challenge3)](https://travis-ci.org/kelvinrandu/store-manager-api)
 
+[![Coverage Status](https://coveralls.io/repos/github/kelvinrandu/store-manager-api/badge.svg?branch=ch-add-coveralls-badge-161360364)](https://coveralls.io/github/kelvinrandu/store-manager-api?branch=ch-add-coveralls-badge-161360364)
 
 # STORE-MANAGER-API
 A restful  flask app intended to communicate using api endpoints
@@ -16,7 +18,7 @@ The store attendants have the priviledge to do the following:
 - View each sale records
 
 ## DOCUMENTATION
-- https://mystoremanager.docs.apiary.io/#
+- https://mystoremanager2.docs.apiary.io/#
 
 ## LINK TO PIVOTAL TRACKER STORIES
 - https://www.pivotaltracker.com/n/projects/2202884
@@ -24,7 +26,8 @@ The store attendants have the priviledge to do the following:
 
 
 ## LINK TO LIVE SITE
-https://mystore-manager-api.herokuapp.com/
+https://my-store-manager2.herokuapp.com/
+
 
 ## RUNNING THE APPLICATION
 - clone [this](https://github.com/kelvinrandu/store-manager-api.git) repository
@@ -44,14 +47,16 @@ https://mystore-manager-api.herokuapp.com/
 
 | Methods        | Url          | Description |
 | ------------- |:-------------:| -----:|
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/login/      |  login user      | 
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/register/          |  register user         |
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/products/        |  create product      | 
-| POST   | https://mystore-manager-api.herokuapp.com/api/v1/sales/           |  create sale         | 
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/products/       |  Fetch all product   |       
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sales/          |  Fetch all sales     |      
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/product/<int: product_id>/ |  Fetches a single product   |
-| GET     | https://mystore-manager-api.herokuapp.com/api/v1/sale/<int: sale_id>/  |  Fetches a single sale   |
+| POST   | https://my-store-manager2.herokuapp.com/api/v1/login/      |  login user      | 
+| POST   | https://my-store-manager2.herokuapp.com/api/v1/register/          |  register user   |
+| POST   | https://my-store-manager2.herokuapp.com/api/v1/products/        |  create product   
+| PUT  | https://my-store-manager2.herokuapp.com/api/v1/products/ <int: product_id>       |  modify product     | 
+
+| POST   | https://my-store-manager2.herokuapp.com/api/v1/sales/           |  create sale         | 
+| GET     | https://my-store-manager2.herokuapp.com/api/v1/products/       |  Fetch all product   |       
+| GET     | https://my-store-manager2.herokuapp.com/api/v1/sales/          |  Fetch all sales     |      
+| GET     | https://my-store-manager2.herokuapp.com/api/v1/product/<int: product_id>/ |  Fetches a single product   |
+| GET     | https://my-store-manager2.herokuapp.com/api/v1/sale/<int: sale_id>/  |  Fetches a single sale   |
 
 
 ## TESTING THE APP

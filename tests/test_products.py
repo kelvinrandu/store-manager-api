@@ -2,7 +2,7 @@
 import unittest
 import json
 import sys
-
+from application.database import conn,create_tables,delete_tables
 from application.app import create_app
 
 
@@ -16,22 +16,24 @@ class ProductTestCase(unittest.TestCase):
 
     def setUp(self):
         '''Initialize app and define test variables'''
-        self.app = create_app('testing')
+        self.app = create_app("testing")
         self.client = self.app.test_client()
-        self. products = { "name": "name", "quantity":12, "price":2000 }                              
-        self.empty_products = { "name": "", "quantity":12,"price":2000 }
-        self.empty_price = { "name": "jfjfj","quantity":12,"price":"" }
-        self.empty_quantity = { "name": "jfjfj","quantity":"","price":3556 }
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+
+        self. products = { "name": "name", "quantity": 68, "min_stock":68, "price":2000, "category_id":1 }                              
+        self.empty_products_name = {  "name": "", "quantity": 68, "min_stock":68, "price":2000, "category_id":1}
+        self.empty_price = {  "name": "name", "quantity": 68, "min_stock":68, "price":"", "category_id":1 }
+        self.empty_min_stock = {  "name": "name", "quantity": 68, "min_stock":"", "price":400, "category_id":1 }
+        self.empty_quantity = {"name": "name", "quantity":"", "min_stock":3344, "price":400, "category_id":1 }
         self.login_user = { "email": "testproduct@gmail.com", "password":"12345678" }
-        self.client.post('api/v1/auth/signup', data=json.dumps(
-            dict(email='testproduct@gmail.com', username='testproduct', password='12345678')),
-                           content_type='application/json')
+
         create_tables()
  
 
     def login(self):
         res_login = self.client.post('/api/v1/auth/login/', data=json.dumps(
-            dict(email='testproduct@gmail.com', password='12345678')),
+            dict(email='admin@gmail.com', password='12345678')),
                                        content_type='application/json')
         return json.loads(res_login.data.decode())["access_token"]
 
@@ -44,6 +46,8 @@ class ProductTestCase(unittest.TestCase):
                                     data = json.dumps(self.products), 
                                     headers=dict(Authorization="Bearer " + self.login()),
                                     content_type = 'application/json')
+        resp_data = json.loads(response.data.decode())
+        self.assertEqual(resp_data['message'], 'product created successfully')
         self.assertEqual(response.status_code, 201)
 
         '''Test  gets all products'''
@@ -51,7 +55,7 @@ class ProductTestCase(unittest.TestCase):
                                    headers=dict(Authorization="Bearer " + self.login()),
                                    content_type = 'application/json')   
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'products retrieved succesfully')
+        self.assertEqual(resp_data['message'], 'product retrieved succesfully')
         self.assertEqual(response.status_code, 200)
 
     def test_create_product(self):
@@ -61,18 +65,18 @@ class ProductTestCase(unittest.TestCase):
                                     headers=dict(Authorization="Bearer " + self.login()),
                                     content_type = 'application/json')
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'product created successfully')
+        self.assertEqual(resp_data['message'], 'product created successfully')
         self.assertEqual(response.status_code, 201)
 
 
     def test_empty_name_product(self):
         '''Test for ceating empty product name '''
         response = self.client.post(CREATE_PRODUCT_URL,
-                                    data = json.dumps(self.empty_products),
+                                    data = json.dumps(self.empty_products_name),
                                     headers=dict(Authorization="Bearer " + self.login()), 
                                     content_type = 'application/json')
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'product name can not be empty')
+        self.assertEqual(resp_data['message'], 'product name can not be empty')
         self.assertEqual(response.status_code, 400)
 
 
@@ -83,11 +87,19 @@ class ProductTestCase(unittest.TestCase):
                                     headers=dict(Authorization="Bearer " + self.login()),
                                     content_type = 'application/json') 
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == {
-        "price": " Product price cannot be blank"
-         })
+        self.assertEqual(resp_data['message'], 'price of product cannot be empty')
         self.assertEqual(response.status_code, 400)
 
+
+    def test_empty_minimum_product(self):
+        '''Test for empty product '''
+        response = self.client.post(CREATE_PRODUCT_URL,
+                                    data = json.dumps(self.empty_min_stock), 
+                                    headers=dict(Authorization="Bearer " + self.login()),
+                                    content_type = 'application/json') 
+        resp_data = json.loads(response.data.decode())
+        self.assertEqual(resp_data['message'], 'minimum stock  cannot be empty')
+        self.assertEqual(response.status_code, 400)
 
     def test_empty_quantity_product(self):
         '''Test for empty product '''
@@ -96,9 +108,7 @@ class ProductTestCase(unittest.TestCase):
                                     headers=dict(Authorization="Bearer " + self.login()),
                                     content_type = 'application/json') 
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == {
-        "quantity": "Product quantity cannot be blank"
-         })
+        self.assertEqual(resp_data['message'], 'quantity of product cannot be empty')
         self.assertEqual(response.status_code, 400)
 
 
@@ -115,28 +125,7 @@ class ProductTestCase(unittest.TestCase):
                                    headers=dict(Authorization="Bearer " + self.login()),
                                    content_type = 'application/json')   
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'products retrieved succesfully')
-        self.assertEqual(response.status_code, 200)
-
-
-
-    def test_get_single_product(self):
-        '''Test to get a single product'''
-
-        '''Add a product'''
-        response = self.client.post(CREATE_PRODUCT_URL,
-                                    data = json.dumps(self.products), 
-                                    headers=dict(Authorization="Bearer " + self.login()),
-                                    content_type = 'application/json')
-        self.assertEqual(response.status_code, 201)
-
-        '''return a single product'''
-        response = self.client.get(GET_SINGLE_PRODUCT,
-                                    data = json.dumps(self.products), 
-                                    headers=dict(Authorization="Bearer " + self.login()),
-                                    content_type = 'application/json')
-        resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'product retrieved succesfully')
+        self.assertEqual(resp_data['message'], 'product retrieved succesfully')
         self.assertEqual(response.status_code, 200)
 
         delete_tables()

@@ -20,7 +20,7 @@ class UserTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
 
-        self.register_user = { "email": "john23@gmail.com", "password":"12345678", "username":"johny23"} 
+        self.register_user = { "email": "john23@gmail.com", "password":"12345678", "username":"johny"} 
         # self.register_user1 = { "email": "testme@gmail.com", "password":"12345678", "username":"testme" }  
         self.register_user_empty_email = { "email": "", "password":"12345678", "username":"test" }
         self.register_user_invalid_email = { "email": "test.gmailcom", "password":"12345678", "username":"test" }
@@ -79,7 +79,7 @@ class UserTestCase(unittest.TestCase):
                                  content_type='application/json')
         resp_data = json.loads(res.data.decode())
         self.assertEqual(res.status_code, 400)
-        self.assertEqual(resp_data['message'], 'username cannot be empty')
+        self.assertEqual(resp_data['message'], 'username is empty')
 
 
     def test_sign_up_empty_password(self):
