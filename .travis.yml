@@ -7,7 +7,7 @@ install:
   - pip install -r requirements.txt
 script:
   - export APP_SETTINGS="testing"
-  - export Test_URL="dbname='Test' host='localhost' port='5432' user='postgres' password='1234'"
+  - export DATABASE_URL="dbname='me' host='localhost' port='5432' user='postgres' password='1234'"
   - pytest
   - pytest --cov-report term-missing --cov=application
 
