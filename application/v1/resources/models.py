@@ -8,7 +8,7 @@ from psycopg2 import connect
 from application.database import conn
 
 
-# db = DatabaseConnect()
+
 cur = conn.cursor(cursor_factory=extras.RealDictCursor)
 
 
@@ -28,10 +28,7 @@ class User():
                 INSERT INTO users(username, email, password,role)
                 VALUES(%s,%s,%s,%s)""",
                 (self.username, self.email, self.password, self.role))
-
-            conn.commit()
-
-            
+         
                        
             return 'attendant registered succesful'
         
@@ -40,7 +37,6 @@ class User():
             print(e)
             return ("ran into trouble registering you")
 
-# checks if user with the id exists
     @staticmethod
     def find_by_id(user_id):
 
@@ -50,7 +46,7 @@ class User():
             return True
                
         return False
-# checks if email exists
+
     @staticmethod
     def find_by_email(email):
 
@@ -59,7 +55,6 @@ class User():
                
         return rows
 
-# checks if user is admin
     @staticmethod
     def is_admin(username):
 
@@ -72,24 +67,20 @@ class User():
                
         return False
 
-# checks if username exists
     @staticmethod
     def find_by_username(username):
       
             cur.execute("""SELECT * FROM users WHERE username='{}' """.format(username))
             rows = cur.fetchone()
+            conn.commit()
             return rows
                
-
-
-    # make admin
     @staticmethod
     def make_admin(attendant_id):
         role = 1
         try:
       
             cur.execute("""UPDATE users  SET role='{}'  WHERE id='{}' """.format(role,attendant_id))
-            # db.cursor.commit()
             conn.commit()
         
             return 'store attendant has been made admin'
@@ -99,22 +90,17 @@ class User():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-#     # generate hash
     @staticmethod
     def generate_hash(raw_password):
         return sha256.hash(raw_password)
-
-    # compare user password with hashed password 
+ 
     @staticmethod
     def verify_hash(password, hash):
         return sha256.verify(password, hash)
 
         
-
-# this class handles product
 class Product():
 
-    # product class constructor
     def __init__(self,name,price,quantity,min_stock,category_id,user_id):
         self.name = name
         self.price = price
@@ -122,9 +108,7 @@ class Product():
         self.min_stock = min_stock 
         self.category_id = category_id
         self.user_id = user_id
-
-# create a product by admin
-        
+      
     def create_new_product(self):
 
         try:
@@ -135,17 +119,14 @@ class Product():
                 (self.name, self.price,self.quantity,self.min_stock,self.category_id,self.user_id))
 
             conn.commit()
-            
-                       
-            return 'product created succesfully'
-        
+                                 
+            return 'product created succesfully' 
 
         except Exception as e:
             print(e)
             return ("ran into trouble creating your product ")
 
 
-# checks if product with the id exists
     @staticmethod
     def find_by_id(product_id):
 
@@ -156,8 +137,6 @@ class Product():
                
         return False
 
-
-# checks if product name exists
     @staticmethod
     def find_product_by_name(name):
 
@@ -180,7 +159,7 @@ class Product():
     def get_products():
         try:
       
-            cur.execute("""SELECT * FROM products  """)
+            cur.execute("""SELECT * FROM products """)
             # db.cursor.commit()
             rows = cur.fetchall()
 
@@ -368,7 +347,7 @@ class Category():
         try:
             cur.execute(
                 """
-                INSERT INTO categories( name,created_by)
+                INSERT INTO categories(name,created_by)
                 VALUES(%s,%s)""",
             ( self.name,self.user_id))
             conn.commit()

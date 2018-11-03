@@ -2,10 +2,7 @@ import re
 import datetime
 from flask_restful import Resource,reqparse,Api
 from flask import Flask,jsonify,request, make_response,Blueprint
-from application.v1.resources.models import User
-from application.v1.resources.models import Sale
-from application.v1.resources.models import Product
-from application.v1.resources.models import Category
+from application.v1.resources.models import Product,Sale,User,Category 
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from functools import wraps
 
@@ -13,14 +10,25 @@ store_manager = Blueprint('api', __name__)
 
 app = Flask(__name__)
 api = Api(store_manager)
+
 def admin_only(f):
     ''' Deny access if the user is not admin '''
     @wraps(f)
     def decorator_func(*args,**kwargs):
         user_name = get_jwt_identity()
-        user = User.find_by_username(user_name)     
-        if user['role'] != 1:
-            return {'message': 'unauthorized access, Invalid token'}, 401
+        user = User.find_by_username(user_name)
+        if  user['role'] == 0 :
+            return {'message': 'unauthorized access'}, 401
+        return f(*args, **kwargs)
+    return decorator_func
+def attendant_only(f):
+    ''' Deny access if the user is not admin '''
+    @wraps(f)
+    def decorator_func(*args,**kwargs):
+        user_name = get_jwt_identity()
+        user = User.find_by_username(user_name)
+        if  user['role'] == 1 :
+            return {'message': 'unauthorized '}, 401
         return f(*args, **kwargs)
     return decorator_func
 
@@ -28,11 +36,12 @@ def admin_only(f):
 class UserRegistration(Resource):
 
     parser = reqparse.RequestParser()
-    parser.add_argument('username', required=True, help='Username cannot be blank', type=str)
+    parser.add_argument('username', required=True, help='Username cannot be blank')
     parser.add_argument('email', required=True, help='Email cannot be blank')
     parser.add_argument('password', required=True, help='Password cannot be blank', type=str)
-    @admin_only
+    
     @jwt_required
+    @admin_only
     def post(self):
 
         args = UserRegistration.parser.parse_args()
@@ -45,22 +54,21 @@ class UserRegistration(Resource):
         
         email_format = re.compile(
         r"(^[a-zA-Z0-9_.-]+@[a-zA-Z-]+\.[.a-zA-Z-]+$)")
-        username_format = re.compile(r"(^[A-Za-z0-9-]+$)")
-
-        if not email:
+        username_format = re.compile(r"(^[a-zA-Z]+$)")
+        if not email :
             return make_response(jsonify({'message': 'email can not be empty'}),400)
         if not user_id:
             return make_response(jsonify({'message': 'user id can not be empty'}),400)
         if not raw_password:
             return make_response(jsonify({'message': 'password cannot be empty'}),400)
         if not username:
-            return make_response(jsonify({'message': 'username cannot be empty'}),400)
+            return make_response(jsonify({'message': 'username is empty'}),400)
         if len(raw_password) < 6:
             return make_response(jsonify({'message': 'Password should be atleast 6 characters'}), 400)
         if not (re.match(email_format, email)):
             return make_response(jsonify({'message': 'Invalid email'}), 400)
         if not (re.match(username_format, username)):
-            return make_response(jsonify({'message': 'Please input only characters and numbers'}), 400)
+            return make_response(jsonify({'message': 'Please input only characters '}), 400)
 
         current_username = User.find_by_username(username)
         if current_username:
@@ -71,8 +79,8 @@ class UserRegistration(Resource):
             return {'message': 'email already exist'}, 400 
   
         new_user = User(
-            username=username,
-            email=email,
+            username=username.lower(),
+            email=email.lower(),
             password=User.generate_hash(raw_password)
      
         )
@@ -81,7 +89,7 @@ class UserRegistration(Resource):
             result = new_user.create_store_attendant()
 
             return {
-                'message': 'Store attendant was created succesfully',
+                'message': 'Store attendant has been created succesfully',
                 'status': 'ok',
                 'username ': username
                 }, 201
@@ -106,7 +114,7 @@ class UserLogin(Resource):
         if not password:
             return {'message': 'password cannot be empty'},400
 
-        current_user = User.find_by_email(email)
+        current_user = User.find_by_email(email.lower())
         if current_user is None:
             return {'message': 'email {} doesn\'t exist'.format(email)},400
 
@@ -114,7 +122,7 @@ class UserLogin(Resource):
             access_token = create_access_token(identity =  current_user['username'],expires_delta=datetime.timedelta(hours=1))
 
             return {
-                'message': 'User was logged in succesfully',
+                'message': 'User has logged in succesfully',
                 'status':'ok',
                 'access_token': access_token,
                 'username': current_user['username']
@@ -127,13 +135,14 @@ class UserLogin(Resource):
 class PostProducts(Resource):
        
         parser = reqparse.RequestParser()
-        parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
-        parser.add_argument('price', required=True, help=' Product price cannot be blank',type=int)
-        parser.add_argument('quantity', required=True, help='Product quantity cannot be blank', type=int)
-        parser.add_argument('min_stock', required=True, help='Minimum stock quantity cannot be blank', type=int)
-        parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
+        parser.add_argument('name', required=True, help='Product name cannot be blank')
+        parser.add_argument('price', required=True, help=' Product price cannot be blank')
+        parser.add_argument('quantity', required=True, help='Product quantity cannot be blank')
+        parser.add_argument('min_stock', required=True, help='Minimum stock quantity cannot be blank')
+        parser.add_argument('category_id', required=True, help='category id cannot be blank')
 
         @jwt_required
+        @admin_only
         def post(self):
 
             args = PostProducts.parser.parse_args()
@@ -145,6 +154,8 @@ class PostProducts(Resource):
             user_id = user['id']
             quantity = args.get('quantity')
             min_stock = args.get('min_stock')
+            number_format = re.compile(r"(^[0-9])")
+
 
             if not name:
                 return make_response(jsonify({'message': 'product name can not be empty'}),400)
@@ -156,10 +167,24 @@ class PostProducts(Resource):
                 return make_response(jsonify({'message': 'user id  cannot be empty'}),400)
             if not min_stock:
                 return make_response(jsonify({'message': 'minimum stock  cannot be empty'}),400)
+            if not (re.match(number_format, price)):
+                return make_response(jsonify({'message': 'Please input only integers '}), 400)
+            if not (re.match(number_format, quantity)):
+                return make_response(jsonify({'message': 'Please input only integers '}), 400)
+            if not (re.match(number_format, min_stock)):
+                return make_response(jsonify({'message': 'Please input only integers '}), 400) 
+            if not (re.match(number_format, category_id)):
+                return make_response(jsonify({'message': 'Please input only intergers '}), 400)  
+            if quantity < min_stock:
+                return make_response(jsonify({'message': 'quantity cannot be  less than minimum stock '}),400)           
 
             this_product = Product.find_product_by_name(name)
             if this_product:
                 return {'message': 'product  by this name already exist'}, 400 
+
+            this_category = Category.get_category_by_id(category_id)
+            if this_category == False:
+                return {'message': 'category with this id does not exist'}, 400 
 
             new_product = Product(
                 name=name,
@@ -172,7 +197,6 @@ class PostProducts(Resource):
             )
 
             try:
-
                 products = new_product.create_new_product()
 
                 return {
@@ -184,15 +208,13 @@ class PostProducts(Resource):
                 print(e)
                 return {'message': 'Something went wrong'}, 500
 
-
 class GetProducts(Resource):
         @jwt_required
         def get(self):
             if Product.get_products() :
                 rows= Product.get_products()
-                return jsonify({'message': 'product retrieved succesfully','status':'ok','products': rows[0]})
+                return jsonify({'message': 'product retrieved succesfully','status':'ok','products': rows})
             return jsonify({'message':'no products yet'})
-
 
 class EachProduct(Resource):
         @jwt_required
@@ -206,6 +228,7 @@ class EachProduct(Resource):
 class DeleteProduct(Resource):
 
     @jwt_required
+    @admin_only
     def delete(self, product_id):
 
         user_name = get_jwt_identity()
@@ -224,7 +247,6 @@ class DeleteProduct(Resource):
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-
 class ModifyProduct(Resource):
 
     parser = reqparse.RequestParser()
@@ -232,8 +254,9 @@ class ModifyProduct(Resource):
     parser.add_argument('quantity', required=True, help='quantity cannot be blank', type=int)
     parser.add_argument('min_stock', required=True, help='minimum stock cannot be blank', type=int)
     parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
-
+    
     @jwt_required
+    @admin_only
     def put(self, product_id):
 
         args = ModifyProduct.parser.parse_args()
@@ -270,10 +293,11 @@ class ModifyProduct(Resource):
 class PostSale(Resource):
         
         parser = reqparse.RequestParser()
-        parser.add_argument('product_id', required=True, help='User_id cannot be blank', type=int)
-        parser.add_argument('quantity', required=True, help='User_id cannot be blank', type=int)
+        parser.add_argument('product_id', required=True, help='product id cannot be blank', type=int)
+        parser.add_argument('quantity', required=True, help='quantity cannot be blank', type=int)
 
         @jwt_required
+        @attendant_only
         def post(self):
 
             args = PostSale.parser.parse_args()
@@ -284,6 +308,7 @@ class PostSale(Resource):
             quantity= args.get('quantity')
             total = 0
 
+             
             if not product_id:
                 return make_response(jsonify({'message': 'product id  can not be empty'}), 400)
             if not user_id:
@@ -299,7 +324,8 @@ class PostSale(Resource):
             if this_user != True:
                 return make_response(jsonify({'message': 'no user by the provided id exists'}), 400)
 
-            stock = Product.find_stock(user_id)
+            stock = Product.find_stock(product_id)
+           
             min_stock = stock['min_stock']
             stock_quantity = stock['quantity']
             gap = stock_quantity - min_stock
@@ -332,8 +358,9 @@ class PostSale(Resource):
                 return {'message': 'Something went wrong'}, 500
 
 class GetSales(Resource):
-
+        
         @jwt_required
+        @admin_only
         def get(self):
  
             if Sale.get_sales() :
@@ -345,6 +372,7 @@ class GetSales(Resource):
 class GetMySales(Resource):
 
         @jwt_required
+        @attendant_only
         def get(self):
             user_name = get_jwt_identity()
             user = User.find_by_username(user_name)
@@ -356,8 +384,9 @@ class GetMySales(Resource):
             return jsonify({'message':'not made sales yet'})              
 
 class EachSale(Resource):
-
+        
         @jwt_required
+        @admin_only
         def get(self,sale_id):
             rows=  Sale.get_each_sale(sale_id)
             if rows:
@@ -370,8 +399,8 @@ class PostCategory(Resource):
 
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True, help='Product name cannot be blank', type=str)
-
         @jwt_required
+        @admin_only
         def post(self):
 
             args =  PostCategory.parser.parse_args()
@@ -397,8 +426,6 @@ class PostCategory(Resource):
                 user_id = user_id
      
             )
-            return   new_category.create_new_category()
-
 
             try:
 
@@ -427,9 +454,9 @@ class GetCategory(Resource):
 class ModifyCategory(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('name', required=True, help='body cannot be blank', type=str)
-
-
+   
     @jwt_required
+    @admin_only
     def put(self,category_id):
 
         args =  ModifyCategory.parser.parse_args()
@@ -469,8 +496,9 @@ class ModifyCategory(Resource):
 
 class DeleteCategory(Resource):
 
-
+  
     @jwt_required
+    @admin_only
     def delete(self,category_id):
 
         user_name = get_jwt_identity()
@@ -500,6 +528,7 @@ class DeleteCategory(Resource):
 class MakeAdmin(Resource):
 
     @jwt_required
+    @admin_only
     def post(self,attendant_id):
         user_name = get_jwt_identity()
         user = User.find_by_username(user_name)
@@ -531,6 +560,7 @@ class AddCategory(Resource):
     parser.add_argument('category_id', required=True, help='category id cannot be blank', type=int)
 
     @jwt_required
+    @admin_only
     def post(self,product_id):
         args =  AddCategory.parser.parse_args()      
         category_id = args.get('category_id')
@@ -565,54 +595,26 @@ class TokenRefresh(Resource):
         access_token = create_access_token(identity = current_user)
         return {'access_token': access_token}
 
-class SecretResource(Resource):
-    @admin_only
-    @jwt_required
-    def get(self):
-        user_name = get_jwt_identity()
-        user = User.find_by_username(user_name)
-        
-        if user['role'] != 1:
-            return {'message': 'unauthorized access, Invalid token'}, 401
-        return {'message': 'you are authorized'}, 200
 
 class UserLogoutAccess(Resource):
     @jwt_required
     def post(self):
-        jti = get_raw_jwt()['jti']
-        try:
-            revoked_token = RevokedTokenModel(jti = jti)
-            revoked_token.add()
-            return {'message': 'Access token has been revoked'}
-        except:
-            return {'message': 'Something went wrong'}, 500
+        # jti = get_raw_jwt()['jti']
+        # try:
+        #     revoked_token = RevokedTokenModel(jti = jti)
+        #     revoked_token.add()
+        #     return {'message': 'Access token has been revoked'}
+        # except:
+        #     return {'message': 'Something went wrong'}, 500
+        pass
 
 
-class UserLogoutRefresh(Resource):
-    @jwt_refresh_token_required
-    def post(self):
-        jti = get_raw_jwt()['jti']
-        try:
-            revoked_token = RevokedTokenModel(jti = jti)
-            revoked_token.add()
-            return {'message': 'Refresh token has been revoked'}
-        except:
-            return {'message': 'Something went wrong'}, 500
 
-class CheckStatus(Resource):
-    def post(self,user_id):
-        user_name = get_jwt_identity()
-        user = User.find_by_username(user_name)
-        user_id = user['id']
-        user = User.is_admin(user_id)
-        return jsonify({'message': 'status check','status':'ok','sale':user})
 
 
 api.add_resource(UserRegistration, '/api/v1/auth/signup/')
 api.add_resource(UserLogin, '/api/v1/auth/login/')
 api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
-api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh/')
-api.add_resource(SecretResource, '/api/v1/secret/')
 api.add_resource(PostProducts, '/api/v1/products/')
 api.add_resource(GetProducts, '/api/v1/products/')
 api.add_resource(EachProduct, '/api/v1/product/<int:product_id>/')
@@ -628,4 +630,4 @@ api.add_resource(ModifyCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(DeleteCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(MakeAdmin, '/api/v1/make/admin/<int:attendant_id>/')
 api.add_resource(AddCategory, '/api/v1/products/add/category/<int:product_id>/')
-api.add_resource(CheckStatus, '/status/<int:user_id>/')
+
