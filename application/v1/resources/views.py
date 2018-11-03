@@ -595,16 +595,6 @@ class TokenRefresh(Resource):
         access_token = create_access_token(identity = current_user)
         return {'access_token': access_token}
 
-class SecretResource(Resource):
-
-    @jwt_required
-    @admin_only
-    def get(self):
-        user_name = get_jwt_identity()
-        user = User.find_by_username(user_name)
-        if user["role"] == 0 :
-            return {'message': 'unauthorized access, Invalid token'}, 401
-        return {'message': 'you are authorized'}, 200
 
 class UserLogoutAccess(Resource):
     @jwt_required
@@ -619,32 +609,12 @@ class UserLogoutAccess(Resource):
         pass
 
 
-class UserLogoutRefresh(Resource):
-    @jwt_refresh_token_required
-    def post(self):
-        # jti = get_raw_jwt()['jti']
-        # try:
-        #     revoked_token = RevokedTokenModel(jti = jti)
-        #     revoked_token.add()
-        #     return {'message': 'Refresh token has been revoked'}
-        # except:
-        #     return {'message': 'Something went wrong'}, 500
-        pass
 
-class CheckStatus(Resource):
-    def post(self,user_id):
-        user_name = get_jwt_identity()
-        user = User.find_by_username(user_name)
-        user_id = user['id']
-        user = User.is_admin(user_id)
-        return jsonify({'message': 'status check','status':'ok','sale':user})
 
 
 api.add_resource(UserRegistration, '/api/v1/auth/signup/')
 api.add_resource(UserLogin, '/api/v1/auth/login/')
 api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
-api.add_resource(UserLogoutRefresh, '/api/v1/logout/refresh/')
-api.add_resource(SecretResource, '/api/v1/secret/')
 api.add_resource(PostProducts, '/api/v1/products/')
 api.add_resource(GetProducts, '/api/v1/products/')
 api.add_resource(EachProduct, '/api/v1/product/<int:product_id>/')
@@ -660,4 +630,4 @@ api.add_resource(ModifyCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(DeleteCategory, '/api/v1/categories/<int:category_id>/')
 api.add_resource(MakeAdmin, '/api/v1/make/admin/<int:attendant_id>/')
 api.add_resource(AddCategory, '/api/v1/products/add/category/<int:product_id>/')
-api.add_resource(CheckStatus, '/status/<int:user_id>/')
+
