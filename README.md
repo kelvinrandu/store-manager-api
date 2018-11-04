@@ -8,14 +8,26 @@ A restful  flask app intended to communicate using api endpoints
 ## DESCRIPTION
 Store-manager is an api that helps store owners manage sales and product inventory records.
 The store attendants have the priviledge to do the following:
-- Create an  account
 - Login in into their account
-- Add product
+- View all products
+- Add sale record
+- View my sale records
+
+The admin has the priviledge to do the following:
+- Login in into their account
+- Create a new store attendant
+- View all products
+- Create a new product
 - View all products
 - View each product
-- Add sale record
-- View  sale records
-- View each sale records
+- Edit product
+- Delete product
+- View all sales records
+- View each sales records
+- Create a new category 
+- Edit  category
+- delete  category
+- Make store attendant admin
 
 ## DOCUMENTATION
 - https://mystoremanager2.docs.apiary.io/#
