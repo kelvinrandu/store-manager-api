@@ -24,23 +24,31 @@ class SaleTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
 
-        self.login_user = { "email": "admin@gmail.com", "password":"12345678" }
-        self. products = { "name": "ps5", "quantity":12, "price":2000, "min_stock":5 } 
-        self.sales = { "description": "sony gaming console","product_id":1,"user_id":1,"quantity":6 }
-        self.empty_sale_description = { "": "sony gaming console","product_id":1,"user_id":1,"quantity":6 }
-        self.empty_sale_product = { "description": "sony gaming console","product_id":"","user_id":1,"quantity":6 }
-        self.empty_sale_user = { "description": "sony gaming console","product_id":1,"user_id":"","quantity":6 }
-        self.empty_sale_quantity = { "description": "sony gaming console","product_id":1,"user_id":1,"quantity":"" }
+        self.register_user = { "email": "john23@gmail.com", "password":"12345678", "username":"johny"} 
+        self.login_admin = { "email": "admin@gmail.com", "password":"12345678" }
+        self.login_user = { "email": "john23@gmail.com", "password":"12345678" }
+        self.products = { "name": "name", "quantity": 70, "min_stock":68, "price":2000, "category_id":1 }                              
+        self.sales = {"product_id":1,"quantity":1 }
+        self.empty_product_id = {"product_id":"","quantity":2 }
+        self.empty_quantity = {"product_id":1,"quantity":"" }
 
         create_tables()
 
     def login(self):
         res_login = self.client.post('/api/v1/auth/login/',
-                                    data = json.dumps(self.login_user),
+                                    data = json.dumps(self.login_admin),
                                     content_type='application/json')
         return json.loads(res_login.data.decode())["access_token"]
 
 
+    def attendant_login(self):
+        res = self.client.post('/api/v1/auth/signup/', data=json.dumps(self.register_user),
+                                    headers=dict(Authorization="Bearer " + self.login()),
+                                    content_type = 'application/json')
+        res_login = self.client.post('/api/v1/auth/login/',
+                                    data = json.dumps(self.login_user),
+                                    content_type='application/json')
+        return json.loads(res_login.data.decode())["access_token"]
 
     def test_create_sale(self):
         '''Test for creating a sale '''
@@ -48,83 +56,83 @@ class SaleTestCase(unittest.TestCase):
                                     data = json.dumps(self.products), 
                                     headers=dict(Authorization="Bearer " + self.login()),
                                     content_type = 'application/json')
-        self.assertEqual(response.status_code, 201)
-        response = self.client.post(CREATE_SALE_URL,
-                                    data = json.dumps(self.sales),
-                                    headers=dict(Authorization="Bearer " + self.login()), 
-                                    content_type = 'application/json')
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'Sale created successfully')
+        self.assertEqual(resp_data['message'], 'product created successfully')
         self.assertEqual(response.status_code, 201)
+        response1 = self.client.post(CREATE_SALE_URL,
+                                    data = json.dumps(self.sales),
+                                    headers=dict(Authorization="Bearer " + self.attendant_login()), 
+                                    content_type = 'application/json')
+        resp_data = json.loads(response1.data.decode())
+        self.assertEqual(resp_data['message'], 'sale created successfully')
+        self.assertEqual(response1.status_code, 201)
 
-
-    def test_create_sale_no_token(self):
+    def test_create_sale_empty_token(self):
         '''Test for creating a sale '''
-        response = self.client.post(CREATE_SALE_URL,
+        response = self.client.post(CREATE_PRODUCT_URL,
+                                    data = json.dumps(self.products), 
+                                    headers=dict(Authorization="Bearer " + self.login()),
+                                    content_type = 'application/json')
+        resp_data = json.loads(response.data.decode())
+        self.assertEqual(resp_data['message'], 'product created successfully')
+        self.assertEqual(response.status_code, 201)
+        response1 = self.client.post(CREATE_SALE_URL,
                                     data = json.dumps(self.sales),
                                     content_type = 'application/json')
-        self.assertEqual(response.status_code, 401)
+        resp_data = json.loads(response1.data.decode())
+        self.assertEqual(resp_data['msg'], 'Missing Authorization Header')
+        self.assertEqual(response1.status_code, 401)
 
-
-    def test_get_sales(self):
-        '''Test for Get all sale'''
-        response = self.client.post(CREATE_SALE_URL,
-                                    data = json.dumps(self.sales), 
+    def test_create_sale_invalid_token(self):
+        '''Test for creating a sale '''
+        response = self.client.post(CREATE_PRODUCT_URL,
+                                    data = json.dumps(self.products), 
                                     headers=dict(Authorization="Bearer " + self.login()),
                                     content_type = 'application/json')
+        resp_data = json.loads(response.data.decode())
+        self.assertEqual(resp_data['message'], 'product created successfully')
         self.assertEqual(response.status_code, 201)
+        response1 = self.client.post(CREATE_SALE_URL,
+                                    data = json.dumps(self.sales),
+                                    headers=dict(Authorization="Bearer " + self.login()),
+                                    content_type = 'application/json')
+        resp_data = json.loads(response1.data.decode())
+        self.assertEqual(resp_data['message'], 'unauthorized ')
+        self.assertEqual(response1.status_code, 401)
 
-        '''Test  gets sales '''
-        response = self.client.get(GET_ALL_SALE,
-                                   headers=dict(Authorization="Bearer " + self.login()),
-                                   content_type = 'application/json')   
-        resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'sales retrieved succesfully')
-        self.assertEqual(response.status_code, 200)
-
-
-
-    def test_empty_description(self):
-        '''Test for empty sale description '''
-        response = self.client.post(CREATE_SALE_URL,
-                                    data = json.dumps(self.empty_sale_description), 
+    def test_create_sale_no_empty_quantity(self):
+        '''Test for creating a sale '''
+        response = self.client.post(CREATE_PRODUCT_URL,
+                                    data = json.dumps(self.products), 
                                     headers=dict(Authorization="Bearer " + self.login()),
                                     content_type = 'application/json')
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'Sale description  can not be empty')
-        self.assertEqual(response.status_code, 400)
-
-
-
-    def test_empty_items(self):
-        '''Test for empty sale item '''
-        response = self.client.post(CREATE_SALE_URL,
-                                    data = json.dumps(self.empty_sale_items),
-                                    headers=dict(Authorization="Bearer " + self.login()), 
-                                    content_type = 'application/json')
-        resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'Sale items  can not be empty')
-        self.assertEqual(response.status_code, 400)
-
-
-
-    def test_get_single_sale(self):
-        '''Test to get a single sale'''
-
-        '''Add sale'''
-        response = self.client.post(CREATE_SALE_URL,
-                                    headers=dict(Authorization="Bearer " + self.login()),
-                                    data = json.dumps(self.sales), 
-                                    content_type = 'application/json')
+        self.assertEqual(resp_data['message'], 'product created successfully')
         self.assertEqual(response.status_code, 201)
+        response1 = self.client.post(CREATE_SALE_URL,
+                                    data = json.dumps(self.empty_quantity),
+                                    headers=dict(Authorization="Bearer " + self.attendant_login()),
+                                    content_type = 'application/json')
+        resp_data = json.loads(response1.data.decode())
+        # self.assertEqual(resp_data['message'], 'quantity cannot be blank')
+        self.assertEqual(response1.status_code, 400)
 
-        '''return a single sale'''
-        response = self.client.get(GET_SINGLE_SALE,
+    def test_create_sale_no_empty_product_id(self):
+        '''Test for creating a sale '''
+        response = self.client.post(CREATE_PRODUCT_URL,
+                                    data = json.dumps(self.products), 
                                     headers=dict(Authorization="Bearer " + self.login()),
-                                    data = json.dumps(self.sales), 
                                     content_type = 'application/json')
         resp_data = json.loads(response.data.decode())
-        self.assertTrue(resp_data['message'] == 'sale retrieved succesfully')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(resp_data['message'], 'product created successfully')
+        self.assertEqual(response.status_code, 201)
+        response1 = self.client.post(CREATE_SALE_URL,
+                                    data = json.dumps(self.empty_product_id),
+                                    headers=dict(Authorization="Bearer " + self.attendant_login()),
+                                    content_type = 'application/json')
+        resp_data = json.loads(response1.data.decode())
+        # self.assertEqual(resp_data['message'], 'quantity cannot be blank')
+        self.assertEqual(response1.status_code, 400)
+
 
         delete_tables()

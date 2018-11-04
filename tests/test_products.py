@@ -21,7 +21,7 @@ class ProductTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
 
-        self. products = { "name": "name", "quantity": 68, "min_stock":68, "price":2000, "category_id":1 }                              
+        self.products = { "name": "name", "quantity": 68, "min_stock":68, "price":2000, "category_id":1 }                              
         self.empty_products_name = {  "name": "", "quantity": 68, "min_stock":68, "price":2000, "category_id":1}
         self.empty_price = {  "name": "name", "quantity": 68, "min_stock":68, "price":"", "category_id":1 }
         self.empty_min_stock = {  "name": "name", "quantity": 68, "min_stock":"", "price":400, "category_id":1 }
@@ -36,8 +36,6 @@ class ProductTestCase(unittest.TestCase):
             dict(email='admin@gmail.com', password='12345678')),
                                        content_type='application/json')
         return json.loads(res_login.data.decode())["access_token"]
-
-
 
     def test_get_products(self):
         '''Test for  creating a product '''

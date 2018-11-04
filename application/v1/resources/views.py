@@ -293,7 +293,7 @@ class ModifyProduct(Resource):
 class PostSale(Resource):
         
         parser = reqparse.RequestParser()
-        parser.add_argument('product_id', required=True, help='product id cannot be blank', type=int)
+        parser.add_argument('product_id', required=True, help=' product id cannot be blank', type=int)
         parser.add_argument('quantity', required=True, help='quantity cannot be blank', type=int)
 
         @jwt_required
@@ -310,7 +310,7 @@ class PostSale(Resource):
 
              
             if not product_id:
-                return make_response(jsonify({'message': 'product id  can not be empty'}), 400)
+                return make_response(jsonify({'message': ' product id cannot be blank'}), 400)
             if not user_id:
                 return make_response(jsonify({'message': 'user_id  can not be empty'}), 400)
             if not quantity:

@@ -21,7 +21,7 @@ class UserTestCase(unittest.TestCase):
         self.app_context.push()
 
         self.register_user = { "email": "john23@gmail.com", "password":"12345678", "username":"johny"} 
-        # self.register_user1 = { "email": "testme@gmail.com", "password":"12345678", "username":"testme" }  
+        self.register_user1 = { "email": "testme@gmail.com", "password":"12345678", "username":"testme" }  
         self.register_user_empty_email = { "email": "", "password":"12345678", "username":"test" }
         self.register_user_invalid_email = { "email": "test.gmailcom", "password":"12345678", "username":"test" }
         self.register_user_empty_username = { "email": "test@gmail.com", "password":"12345678", "username":"" }
