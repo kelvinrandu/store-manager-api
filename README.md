@@ -48,15 +48,22 @@ https://my-store-manager2.herokuapp.com/
 | Methods        | Url          | Description |
 | ------------- |:-------------:| -----:|
 | POST   | https://my-store-manager2.herokuapp.com/api/v1/login/      |  login user      | 
-| POST   | https://my-store-manager2.herokuapp.com/api/v1/register/          |  register user   |
-| POST   | https://my-store-manager2.herokuapp.com/api/v1/products/        |  create product   
-| PUT  | https://my-store-manager2.herokuapp.com/api/v1/products/ <int: product_id>       |  modify product     | 
-
-| POST   | https://my-store-manager2.herokuapp.com/api/v1/sales/           |  create sale         | 
-| GET     | https://my-store-manager2.herokuapp.com/api/v1/products/       |  Fetch all product   |       
-| GET     | https://my-store-manager2.herokuapp.com/api/v1/sales/          |  Fetch all sales     |      
+| POST   | https://my-store-manager2.herokuapp.com/api/v1/register/          | admin register store attendant|
+| POST   | https://my-store-manager2.herokuapp.com/api/v1/products/        |  create product   |
+| GET     | https://my-store-manager2.herokuapp.com/api/v1/products/       |  Fetch all product   | 
 | GET     | https://my-store-manager2.herokuapp.com/api/v1/product/<int: product_id>/ |  Fetches a single product   |
+| PUT  | https://my-store-manager2.herokuapp.com/api/v1/products/ <int: product_id>       |  modify product     | 
+| DELETE  | https://my-store-manager2.herokuapp.com/api/v1/products/ <int: product_id>    |  delete a  product | 
+| POST   | https://my-store-manager2.herokuapp.com/api/v1/sales/           |  create sale         |       
+| GET     | https://my-store-manager2.herokuapp.com/api/v1/my/sales/         |  Fetch  sales my sales for store attendant     |  
+| GET     | https://my-store-manager2.herokuapp.com/api/v1/sales/          |  Fetch all sales     |     
 | GET     | https://my-store-manager2.herokuapp.com/api/v1/sale/<int: sale_id>/  |  Fetches a single sale   |
+| POST    | https://my-store-manager2.herokuapp.com/api/v1/categories/  |  post category  |
+|  GET  | https://my-store-manager2.herokuapp.com/api/v1/categories/  |  fetch all categories  |
+|  PUT  | https://my-store-manager2.herokuapp.com/api/v1/categories/<int:category_id>/  |  modify a category  |
+|  DELETE | https://my-store-manager2.herokuapp.com/api/v1/categories/<int:category_id>/  |  delete a category  |
+|  POST | https://my-store-manager2.herokuapp.com/api/v1/make/admin/<int:attendant_id>/  |  make store attendant admin  |
+|  POST | https://my-store-manager2.herokuapp.com/api/v1/products/add/category/<int:product_id>/|  add category to product|
 
 
 ## TESTING THE APP
