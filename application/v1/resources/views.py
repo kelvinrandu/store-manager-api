@@ -1,7 +1,7 @@
 import re
 import datetime
 from flask_restful import Resource,reqparse,Api
-from flask import Flask,jsonify,request, make_response,Blueprint
+from flask import Flask,jsonify,request, make_response,Blueprint,redirect
 from application.v1.resources.models import Product,Sale,User,Category 
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from functools import wraps
@@ -32,6 +32,10 @@ def attendant_only(f):
         return f(*args, **kwargs)
     return decorator_func
 
+
+class Home(Resource):
+    def get(self):
+            return redirect('https://mystoremanager2.docs.apiary.io/#')
 
 class UserRegistration(Resource):
 
@@ -611,7 +615,7 @@ class UserLogoutAccess(Resource):
 
 
 
-
+api.add_resource(Home, '/')
 api.add_resource(UserRegistration, '/api/v1/auth/signup/')
 api.add_resource(UserLogin, '/api/v1/auth/login/')
 api.add_resource(UserLogoutAccess, '/api/v1/logout/access/')
