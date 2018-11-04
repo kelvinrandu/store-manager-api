@@ -5,11 +5,22 @@ python:
 
 install:
   - pip install -r requirements.txt
+
+services:
+  - postgresql
+
+before_script:
+- psql -c "create database test;" -U postgres
+- psql -c "create user randu WITH PASSWORD '12345678';" -U postgres
+
 script:
   - export APP_SETTINGS="testing"
-  - export DATABASE_URL="dbname='me' host='localhost' port='5432' user='postgres' password='1234'"
+  - export SECRET_KEY="allyoursecretsaresafehere"
+  - export DATABASE_URL="dbname=test user=randu password=12345678"
   - pytest
   - pytest --cov-report term-missing --cov=application
 
 after_success:
    - "coveralls"
+cache:
+  - pip
