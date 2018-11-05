@@ -413,8 +413,6 @@ class PostCategory(Resource):
             user = User.find_by_username(user_name)
             user_id = user['id']
             
-
-
             if not name:
                 return make_response(jsonify({'message': 'category name can not be empty'}),400)
 
@@ -427,14 +425,11 @@ class PostCategory(Resource):
 
             new_category = Category(
                 name=name ,
-                user_id = user_id
-     
+                user_id = user_id    
             )
 
             try:
-
                 new_category.create_new_category()
-
                 return {
                 'message': 'category created successfully','status':'ok'
 
@@ -538,7 +533,6 @@ class MakeAdmin(Resource):
         user = User.find_by_username(user_name)
         user_id = user['id']
            
-
         if not user_id:
             return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)
 
@@ -576,7 +570,6 @@ class AddCategory(Resource):
             return make_response(jsonify({'message': 'admin id  cannot be empty'}),400)   
         if not category_id:
             return make_response(jsonify({'message': 'category id  cannot be empty'}),400) 
-
         
         try:
             Product.add_category_to_product(product_id,category_id,admin_id)
@@ -603,16 +596,7 @@ class TokenRefresh(Resource):
 class UserLogoutAccess(Resource):
     @jwt_required
     def post(self):
-        # jti = get_raw_jwt()['jti']
-        # try:
-        #     revoked_token = RevokedTokenModel(jti = jti)
-        #     revoked_token.add()
-        #     return {'message': 'Access token has been revoked'}
-        # except:
-        #     return {'message': 'Something went wrong'}, 500
         pass
-
-
 
 
 api.add_resource(Home, '/')

@@ -4,7 +4,6 @@ from flask import Flask, jsonify, request, make_response
 from passlib.hash import pbkdf2_sha256 as sha256
 from psycopg2 import sql
 from psycopg2 import connect
-# from application.database import DatabaseConnect
 from application.database import conn
 
 
@@ -145,7 +144,6 @@ class Product():
                
         return rows
 
-# return product quantity in stock
     @staticmethod
     def find_stock(product_id):
 
@@ -154,13 +152,11 @@ class Product():
                
         return rows
 
-# fetch all products by admin
     @staticmethod  
     def get_products():
         try:
       
             cur.execute("""SELECT * FROM products """)
-            # db.cursor.commit()
             rows = cur.fetchall()
 
             return rows
@@ -169,36 +165,28 @@ class Product():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-
-# fetch a single product 
     @staticmethod
     def get_each_product(product_id):
         try:
       
             cur.execute("""SELECT * FROM products WHERE id='{}' """.format(product_id))
-            # db.cursor.commit()
             rows = cur.fetchall()
             if not rows :
                 return False
         
             return rows
-
         
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
 
-
-
-  #  modify an entry
     @staticmethod
     def edit_product(product_id,name,quantity,min_stock,category_id,user_id):
   
         try:
       
             cur.execute("""UPDATE products  SET name='{}', quantity='{}',  min_stock='{}', category_id='{}', created_by='{}' WHERE id='{}' """.format(name,quantity,min_stock,category_id,user_id,product_id))
-            # db.cursor.commit()
             conn.commit()
         
             return 'product edited'
@@ -208,48 +196,40 @@ class Product():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-  #  modify product quantity after a sale is made
     @staticmethod
     def updated_product(product_id,quantity):
   
         try:
       
             cur.execute("""UPDATE products  SET quantity='{}'  WHERE id='{}' """.format(quantity,product_id))
-            # db.cursor.commit()
             conn.commit()
         
             return 'product price edited'
-
         
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-  #  delete a product
     @staticmethod
     def delete_product(product_id,user_id):
   
         try:
       
             cur.execute("""DELETE FROM products WHERE id='{}' """.format(product_id))
-            # db.cursor.commit()
             conn.commit()
         
             return 'product deleted succesfully'
-
         
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-#  add category to product
     @staticmethod
     def add_category_to_product(product_id,category_id,admin_id):
   
         try:
       
             cur.execute("""UPDATE products  SET category_id='{}'  WHERE id='{}' """.format(category_id,product_id))
-            # db.cursor.commit()
             conn.commit()
         
             return 'category added to product'
@@ -261,14 +241,12 @@ class Product():
 
 class Sale():
 
-# product class constructor
     def __init__(self,product_id,quantity,total,user_id):
         self.product_id = product_id
         self.quantity = quantity
         self.total = total
         self.user_id = user_id
 
-# create a sale record by store attendant
     def create_new_sale(self):
         try:
             cur.execute(
@@ -276,25 +254,19 @@ class Sale():
                 INSERT INTO sales(product_id,quantity,total,created_by)
                 VALUES(%s,%s,%s,%s)""",
             (self.product_id,self.quantity,self.total,self.user_id))
-            conn.commit()
-
-            
+            conn.commit()          
                        
             return 'sale created succesfully'
         
-
         except Exception as e:
             print(e)
             return ("ran into trouble creating your sale ")
 
-
-# fetch all sales
     @staticmethod
     def get_sales():
         try:
       
             cur.execute("""SELECT * FROM sales  """)
-            # db.cursor.commit()
             rows = cur.fetchall()
 
             return rows
@@ -303,12 +275,10 @@ class Sale():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-# fetch all sales
     @staticmethod
     def get_my_sales(user_id):
         try:
             cur.execute("""SELECT * FROM sales WHERE created_by='{}'  """.format(user_id))
-            # db.cursor.commit()
             rows = cur.fetchall()
 
             return rows
@@ -318,17 +288,14 @@ class Sale():
             return {'message': 'Something went wrong'}, 500
 
 
-# fetch a single sale
     @staticmethod
     def get_each_sale(sale_id):
         try:
       
             cur.execute("""SELECT * FROM sales WHERE id='{}' """.format(sale_id))
-            # db.cursor.commit()
             rows = cur.fetchall()
         
             return rows
-
         
         except Exception as e:
             print(e)
@@ -337,12 +304,10 @@ class Sale():
 
 class Category():
 
-# product class constructor
     def __init__(self,name,user_id):
         self.name = name
         self.user_id = user_id
 
-# create a sale record by store attendant
     def create_new_category(self):
         try:
             cur.execute(
@@ -350,18 +315,14 @@ class Category():
                 INSERT INTO categories(name,created_by)
                 VALUES(%s,%s)""",
             ( self.name,self.user_id))
-            conn.commit()
-
-            
+            conn.commit()            
                        
             return 'category created succesfully'
         
-
         except Exception as e:
             print(e)
             return ("ran into trouble creating category ")
 
-# checks if category name exists
     @staticmethod
     def find_category_by_name(name):
 
@@ -375,25 +336,21 @@ class Category():
         try:
       
             cur.execute("""SELECT * FROM categories WHERE id='{}' """.format(category_id))
-            # db.cursor.commit()
             rows = cur.fetchall()
             if not rows :
                 return False
         
             return rows
-
-        
+       
         except Exception as e:
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-# fetch all categoies by admin
     @staticmethod  
     def get_categories():
         try:
       
             cur.execute("""SELECT * FROM categories  """)
-            # db.cursor.commit()
             rows = cur.fetchall()
 
             return rows
@@ -402,14 +359,12 @@ class Category():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-  #  modify an entry
     @staticmethod
     def edit_category(category_id,name,user_id):
   
         try:
       
             cur.execute("""UPDATE categories  SET name='{}', created_by='{}' WHERE id='{}' """.format(name,user_id,category_id))
-            # db.cursor.commit()
             conn.commit()
         
             return 'product edited'
@@ -419,14 +374,12 @@ class Category():
             print(e)
             return {'message': 'Something went wrong'}, 500
 
-  #  delete a category
     @staticmethod
     def delete_category(category_id,user_id):
   
         try:
       
             cur.execute("""DELETE FROM categories WHERE id='{}' """.format(category_id))
-            # db.cursor.commit()
             conn.commit()
         
             return 'product deleted succesfully'
