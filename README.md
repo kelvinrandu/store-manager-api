@@ -82,4 +82,10 @@ https://my-store-manager2.herokuapp.com/
 
 ## RUN TEST
 To run unitests type the code below in your terminal in your root folder
-``` $ pytest ```
+- export yourtesting  app setting
+``` export APP_SETTINGS="testing" ```
+- export link to your test database
+``` export DATABASE_URL="url to your test database" ```
+- run your tests
+ ``` $ pytest ```
+
