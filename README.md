@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/kelvinrandu/store-manager-api/badge.svg?branch=Challenge3)](https://coveralls.io/github/kelvinrandu/store-manager-api?branch=Challenge3)
 
 # STORE-MANAGER-API
-A restful  flask app intended to communicate using api endpoints
+A restful  flask app intended to communicate using api endpoints built using flask
 
 ## DESCRIPTION
 Store-manager is an api that helps store owners manage sales and product inventory records.
