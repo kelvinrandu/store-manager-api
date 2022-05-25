@@ -30,7 +30,7 @@ postgres==2.2.2
 psycopg2-binary==2.7.5
 py==1.7.0
 pycparser==2.19
-PyJWT==1.6.4
+PyJWT==2.4.0
 pyOpenSSL==18.0.0
 pytest==3.8.2
 pytest-cov==2.6.0
